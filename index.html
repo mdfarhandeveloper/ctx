@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CTX Coin - The Next-Gen Tap Game</title>
    
-    <!-- Canvas Confetti and TonConnect UI Library -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <style>
@@ -134,9 +133,6 @@
             width: 210px;
             height: 210px;
             border-radius: 50%;
-            
-            
-            
             cursor: pointer;
             display: flex;
             justify-content: center;
@@ -157,11 +153,12 @@
             background: rgba(0,0,0,0.15);
         }
 
-        .coin-symbol {
-            font-size: 75px;
-            font-weight: bold;
-            color: #fff;
-            text-shadow: 2px 2px 10px rgba(0,0,0,0.4);
+        .coin-symbol img {
+            width: 200px;       
+            height: auto;       
+            object-fit: contain;
+            display: block;
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));
         }
 
         .energy-box {
@@ -317,17 +314,10 @@
             background: rgba(255,255,255,0.1);
             font-weight: bold;
         }
-        .coin-symbol img {
-            width: 300px;       /* আপনার পছন্দমতো সাইজ এখানে দিন */
-            height: auto;       /* অনুপাত ঠিক রাখার জন্য */
-            object-fit: contain;
-            display: block;
-            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));}
     </style>
 </head>
 <body>
 
-    <!-- HOME PAGE -->
     <div id="home" class="page active">
         <div class="score-container">
             <div id="balance" class="coin-balance">0</div>
@@ -353,7 +343,6 @@
         </div>
     </div>
 
-    <!-- TASKS CENTER PAGE -->
     <div id="tasks" class="page">
         <h2>Earn Rewards</h2>
         <p style="color: #94a3b8; margin-bottom: 20px; text-align: center;">Complete fast tasks to instantly gain lots of coins</p>
@@ -362,39 +351,46 @@
             <div class="task-row">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSIehT5z77uyqb3t9WAKwmrue2u6639pZ92MQ&s" alt="" style="width: 24px; height: 24px;">
-                        <h4>Subscribe YouTube </h4>
+                    <div>
+                        <h4>Subscribe YouTube</h4>
                         <span style="color: var(--accent-color)">+1,000 CTX</span>
+                    </div>
                 </div>
-                <button class="btn" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('yt', 1000)">Start</button>
+                <button class="btn" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('yt', 1000, this)">Start</button>
             </div>
             <div class="task-row">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="" style="width: 24px; height: 24px;">
-                            <h4>Join Telegram</h4>
-                            <span style="color: var(--accent-color)">+1,000 CTX</span>
+                    <div>
+                        <h4>Join Telegram</h4>
+                        <span style="color: var(--accent-color)">+1,000 CTX</span>
+                    </div>
                 </div>
-                <button class="btn" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('tg', 1000)">Start</button>
+                <button class="btn" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('tg', 1000, this)">Start</button>
             </div>
             <div class="task-row">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/Logo_de_Facebook.png" alt="" style="width: 24px; height: 24px;">
-                    <h4>Follow Facebook</h4>
-                    <span style="color: var(--accent-color)">+1,000 CTX</span>
+                    <div>
+                        <h4>Follow Facebook</h4>
+                        <span style="color: var(--accent-color)">+1,000 CTX</span>
+                    </div>
                 </div>
-                <button class="btn" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('fb', 1000)">Start</button>
+                <button class="btn" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('fb', 1000, this)">Start</button>
             </div>
             <div class="task-row">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/X_logo.jpg/960px-X_logo.jpg" alt="" style="width: 24px; height: 24px;">
-                    <h4>Follow Us on X.com</h4>
-                    <span style="color: var(--accent-color)">+1,500 CTX</span>
+                    <div>
+                        <h4>Follow Us on X.com</h4>
+                        <span style="color: var(--accent-color)">+1,500 CTX</span>
+                    </div>
                 </div>
-                <button class="btn" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('x', 1500)">Start</button>
+                <button class="btn" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('x', 1500, this)">Start</button>
             </div>
         </div>
     </div>
 
-    <!-- REFERRALS LINK PAGE -->
     <div id="ref" class="page">
         <h2>Invite System</h2>
         <p style="color: #94a3b8; margin-bottom: 20px; text-align: center;">Invite users to earn passive referral shares</p>
@@ -406,7 +402,6 @@
         </div>
     </div>
 
-    <!-- BOOST SHOP PAGE -->
     <div id="shop" class="page">
         <h2>Boost Shop</h2>
         <p style="color: #94a3b8; margin-bottom: 20px; text-align: center;">Spend CTX coins to upgrade clicking assets</p>
@@ -431,7 +426,6 @@
         </div>
     </div>
 
-    <!-- WALLET PAGE -->
     <div id="wallet" class="page">
         <h2>Wallet Connection</h2>
         <p style="color: #94a3b8; margin-bottom: 20px; text-align: center;">Verify and connect your TON wallet to receive upcoming token drops</p>
@@ -448,7 +442,6 @@
         </div>
     </div>
 
-    <!-- LEADERBOARD & ADMIN DASHBOARD -->
     <div id="admin" class="page">
         <h2 style="color: #f43f5e; margin-bottom: 15px;">Top Leaders & Users (Admin View)</h2>
         <div class="card" style="max-width: 100%; overflow-x: auto;">
@@ -462,13 +455,11 @@
                     </tr>
                 </thead>
                 <tbody id="admin-leaderboard">
-                    <!-- Dynamic Cloud Data -->
-                </tbody>
+                    </tbody>
             </table>
         </div>
     </div>
 
-    <!-- BOTTOM TAB NAVIGATION -->
     <nav class="nav-bar">
         <a class="nav-item active" onclick="switchPage('home')">
             <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Home
@@ -485,13 +476,11 @@
         <a class="nav-item" onclick="switchPage('wallet')">
             <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2-.9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Wallet
         </a>
-        <!-- Secret Admin Button (শুরুতে সম্পূর্ণ অদৃশ্য থাকবে) -->
         <a class="nav-item" id="nav-admin-btn" style="display: none;" onclick="switchPage('admin')">
             <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>Admin
         </a>
     </nav>
 
-    <!-- FIREBASE AND GAME SYSTEM SCRIPT -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
@@ -509,6 +498,9 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+
+        // গুরুত্বপূর্ণ: আপনার টেলিগ্রাম বটের ইউজারনেম এখানে দিন (বিনা @)
+        const TELEGRAM_BOT_USERNAME = "ctxcoin_bot"; 
 
         let userId = localStorage.getItem('ctx_user_id');
         if (!userId) {
@@ -533,13 +525,16 @@
             walletAddress: localWallet
         };
 
-        // ফাংশনগুলোকে গ্লোবাল উইন্ডোতে এক্সপোর্ট করা (যাতে বাটন ক্লিক কাজ করে)
         window.userData = userData;
         window.db = db;
         window.ref = ref;
         window.set = set;
 
         updateUI();
+
+        // ইউআরএল থেকে রেফারেল আইডি ডিটেক্ট করা (টেলিগ্রাম মিনি অ্যাপ tgWebAppStartParam সাপোর্ট করে)
+        const urlParams = new URLSearchParams(window.location.search);
+        let referrerId = urlParams.get('ref') || urlParams.get('tgWebAppStartParam'); 
 
         const userDbRef = ref(db, 'users/' + userId);
         get(userDbRef).then((snapshot) => {
@@ -555,8 +550,6 @@
                 saveDataLocally();
                 updateUI();
             } else {
-                const urlParams = new URLSearchParams(window.location.search);
-                const referrerId = urlParams.get('ref');
                 if (referrerId && referrerId !== userId) {
                     const refUserRef = ref(db, 'users/' + referrerId);
                     get(refUserRef).then((snap) => {
@@ -590,7 +583,9 @@
             document.getElementById('balance').innerText = userData.balance.toLocaleString();
             document.getElementById('energy-text').innerText = `${userData.energy}/1000`;
             document.getElementById('energy-fill').style.width = `${(userData.energy / 1000) * 100}%`;
-            document.getElementById('ref-link').value = `${window.location.origin}${window.location.pathname}?ref=${userId}`;
+            
+            // টেলিগ্রাম বটের মাধ্যমে খোলার জন্য স্ট্যান্ডার্ড লিঙ্ক জেনারেশন
+            document.getElementById('ref-link').value = `https://t.me/${TELEGRAM_BOT_USERNAME}?startapp=${userId}`;
             
             if (userData.hasAutoClicker) {
                 document.getElementById('buy-auto').disabled = true;
@@ -603,7 +598,7 @@
         }
         window.updateUI = updateUI;
 
-        // এনার্জি রিকভারি
+        // Energy Recovery
         setInterval(() => {
             if (userData.energy < 1000) {
                 userData.energy = Math.min(1000, userData.energy + 3);
@@ -612,7 +607,7 @@
             }
         }, 1000);
 
-        // ট্যাপ ইভেন্ট
+        // Tap Event
         const tapBtn = document.getElementById('tap-btn');
         tapBtn.addEventListener('click', (e) => {
             if (userData.energy < userData.clickPower) {
@@ -652,7 +647,7 @@
             setTimeout(() => floating.remove(), 700);
         });
 
-        // অটো ক্লিকার ইনকাম
+        // Auto Clicker Income
         setInterval(() => {
             if (userData.hasAutoClicker) {
                 userData.balance += 5;
@@ -661,7 +656,7 @@
             }
         }, 1000);
 
-        // টন কানেক্ট হ্যান্ডলার
+        // TonConnect UI Handler
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://ton-connect.github.io/demo-dapp-with-react-ui/tonconnect-manifest.json',
             buttonRootId: 'ton-connect-btn-container'
@@ -685,7 +680,7 @@
             }
         });
 
-        // এডমিন লিডারবোর্ড লাইভ রেন্ডার
+        // Admin Leaderboard Live Render
         const allUsersRef = ref(db, 'users');
         onValue(allUsersRef, (snapshot) => {
             const data = snapshot.val();
@@ -713,9 +708,7 @@
         });
     </script>
 
-    <!-- UI NAVIGATION AND BUTTON HANDLERS -->
     <script>
-        // গ্লোবাল চেক ইউআরএল প্যারামিটার পেজ লোড হওয়ার সাথে সাথে
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('mode') === 'admin') {
@@ -729,14 +722,16 @@
 
             document.getElementById(pageId).classList.add('active');
 
-            const navItems = document.querySelectorAll('.nav-item');
+            const navItems = document.querySelectorAll('.nav-bar .nav-item');
             navItems.forEach(item => item.classList.remove('active'));
             
             const indexMap = { 'home': 0, 'tasks': 1, 'ref': 2, 'shop': 3, 'wallet': 4, 'admin': 5 };
-            navItems[indexMap[pageId]].classList.add('active');
+            if(navItems[indexMap[pageId]]) {
+                navItems[indexMap[pageId]].classList.add('active');
+            }
         }
 
-        function completeTask(taskName, reward) {
+        function completeTask(taskName, reward, clickedButton) {
             if (window.userData.completedTasks.includes(taskName)) {
                 alert("You have already completed this task!");
                 return;
@@ -749,9 +744,7 @@
 
             window.open(taskUrl, '_blank');
 
-            const clickedButton = event.target;
             let timeLeft = 20;
-            
             clickedButton.disabled = true;
             clickedButton.style.background = "#475569";
             clickedButton.innerText = `Wait ${timeLeft}s`;
