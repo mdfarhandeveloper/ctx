@@ -6,12 +6,17 @@
     <title>CTX Coin - The Next-Gen Tap Game</title>
     <script>
     (function() {
+        // এখানে আপনার ইচ্ছামতো যেকোনো গোপন পাসওয়ার্ড বা পিন দিন
+        const SECRET_PASSWORD = "farhanali31@"; 
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const isAdminParam = urlParams.get('admin') === SECRET_PASSWORD;
+
         const ua = navigator.userAgent || navigator.vendor || window.opera;
-        // চেক করা হচ্ছে ইউজার এজেন্ট বা টেলিগ্রামের নিজস্ব অবজেক্ট আছে কি না
         const isTelegram = /Telegram/i.test(ua) || (window.Telegram && window.Telegram.WebApp);
 
-        if (!isTelegram) {
-            // যদি সাধারণ ব্রাউজার (Chrome, Safari, etc.) হয়, তবে পুরো পেজ ফাঁকা করে নোটিশ দেখাবে
+        // ইউজার যদি টেলিগ্রাম থেকে না আসে এবং সঠিক অ্যাডমিন পাসওয়ার্ডও না থাকে, তবে ব্লক হবে
+        if (!isTelegram && !isAdminParam) {
             document.documentElement.innerHTML = `
                 <style>
                     body {
@@ -19,13 +24,11 @@
                         color: #ffffff;
                         font-family: system-ui, sans-serif;
                         display: flex;
-                        flex-direction: column;
                         align-items: center;
                         justify-content: center;
                         height: 100vh;
                         margin: 0;
                         text-align: center;
-                        padding: 20px;
                     }
                     .error-box {
                         background: rgba(255, 255, 255, 0.05);
@@ -35,12 +38,11 @@
                         max-width: 400px;
                     }
                     h1 { color: #f43f5e; margin-bottom: 10px; font-size: 24px; }
-                    p { color: #94a3b8; font-size: 15px; line-height: 1.5; }
+                    p { color: #94a3b8; font-size: 15px; }
                 </style>
                 <div class="error-box">
                     <h1>Access Denied! ❌</h1>
                     <p>This game can only be played inside the <strong>Telegram Mini App</strong>.</p>
-                    <p style="margin-top: 15px; font-size: 13px; color: #fbbf24;">Please open our official Telegram Bot to play CTX Coin.</p>
                 </div>
             `;
             window.stop(); // বাকি কোড লোড হওয়া বন্ধ করবে
