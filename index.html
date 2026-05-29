@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CTX Coin - The Next-Gen Tap Game</title>
+    <!-- Canvas Confetti and TonConnect UI Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <style>
+        :root {
+            --bg-gradient: radial-gradient(circle at center, #1e1b4b 0%, #090514 100%);
+            --card-bg: rgba(30, 27, 75, 0.6);
+            --accent-color: #fbbf24;
+            --accent-glow: rgba(251, 191, 36, 0.4);
+            --text-color: #ffffff;
+            --neon-blue: #38bdf8;
+            --neon-green: #4ade80;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'system-ui', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background: var(--bg-gradient);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            background: rgba(99, 102, 241, 0.15);
+            filter: blur(100px);
+            top: 20%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+
+        .page {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            height: calc(100vh - 75px);
+            padding: 20px;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        .nav-bar {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 75px;
+            background: rgba(15, 12, 30, 0.9);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #64748b;
+            font-size: 11px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .nav-item.active {
+            color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+        .nav-item svg {
+            width: 22px;
+            height: 22px;
+            margin-bottom: 5px;
+            fill: currentColor;
+            transition: fill 0.2s ease;
+        }
+
+        .score-container {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .coin-balance {
+            font-size: 46px;
+            font-weight: 800;
+            color: var(--accent-color);
+            text-shadow: 0 0 20px var(--accent-glow);
+            letter-spacing: -1px;
+        }
+
+        .coin-name-tag {
+            font-size: 14px;
+            color: var(--neon-blue);
+            font-weight: bold;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .coin-wrapper {
+            margin: auto 0;
+            perspective: 1000px;
+        }
+
+        .main-coin {
+            width: 210px;
+            height: 210px;
+            border-radius: 50%;
+            
+            
+            
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.1s ease;
+        }
+
+        .coin-inner-design {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 4px dashed rgba(255, 255, 255, 0.3);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.15);
+        }
+
+        .coin-symbol {
+            font-size: 75px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 2px 2px 10px rgba(0,0,0,0.4);
+        }
+
+        .energy-box {
+            width: 100%;
+            max-width: 380px;
+            margin-bottom: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .energy-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .energy-bar-bg {
+            width: 100%;
+            height: 12px;
+            background: #1e1b4b;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .energy-bar-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #f59e0b, #eab308);
+            box-shadow: 0 0 10px rgba(234, 179, 8, 0.5);
+            transition: width 0.1s linear;
+        }
+
+        .floating-plus {
+            position: absolute;
+            color: #fff;
+            font-size: 32px;
+            font-weight: 900;
+            pointer-events: none;
+            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
+            animation: bounceFloatUp 0.7s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+        }
+
+        @keyframes bounceFloatUp {
+            0% { transform: translateY(0) scale(0.6); opacity: 0; }
+            20% { opacity: 1; }
+            100% { transform: translateY(-130px) scale(1.3); opacity: 0; }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 18px;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--accent-color) 0%, #d97706 100%);
+            color: #000;
+            border: none;
+            padding: 14px;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        .btn:disabled {
+            background: #475569;
+            color: #94a3b8;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .task-row, .shop-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .task-row:last-child, .shop-row:last-child {
+            border-bottom: none;
+        }
+
+        .wallet-display-box {
+            background: rgba(0,0,0,0.2);
+            padding: 12px;
+            border-radius: 10px;
+            margin-top: 15px;
+            font-size: 13px;
+            word-break: break-all;
+            border: 1px dashed rgba(255,255,255,0.2);
+        }
+
+        .copy-button {
+            margin-top: 8px;
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            color: #fff;
+            font-size: 12px;
+            cursor: pointer;
+            display: inline-block;
+        }
+
+        .copy-button:active {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        .leaderboard-table th, .leaderboard-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .leaderboard-table th {
+            color: #94a3b8;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .rank-badge {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            line-height: 24px;
+            text-align: center;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            font-weight: bold;
+        }
+        .coin-symbol img {
+            width: 300px;       /* আপনার পছন্দমতো সাইজ এখানে দিন */
+            height: auto;       /* অনুপাত ঠিক রাখার জন্য */
+            object-fit: contain;
+            display: block;
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));}
+    </style>
+</head>
+<body>
+
+    <!-- HOME PAGE -->
+    <div id="home" class="page active">
+        <div class="score-container">
+            <div id="balance" class="coin-balance">0</div>
+            <div class="coin-name-tag">CTX COINS</div>
+        </div>
+        
+        <div class="coin-wrapper">
+            <div class="main-coin" id="tap-btn">
+                <div class="coin-inner-design">
+                    <span class="coin-symbol"><img src="https://i.postimg.cc/9fm67xXX/ctxcoin-logo.png" alt="CTX Coin Logo"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="energy-box">
+            <div class="energy-header">
+                <span>⚡ Energy Limit</span>
+                <span id="energy-text" style="font-weight: bold;">1000/1000</span>
+            </div>
+            <div class="energy-bar-bg">
+                <div class="energy-bar-fill" id="energy-fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TASKS CENTER PAGE -->
+    <div id="tasks" class="page">
+        <h2>Earn Rewards</h2>
+        <p style="color: #94a3b8; margin-bottom: 20px; text-align: center;">Complete fast tasks to instantly gain lots of coins</p>
+        
+        <div class="card">
+            <div class="task-row">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSIehT5z77uyqb3t9WAKwmrue2u6639pZ92MQ&s" alt="" style="width: 24px; height: 24px;">
+                        <h4>Subscribe YouTube </h4>
+                        <span style="color: var(--accent-color)">+1,000 CTX</span>
+                </div>
+                <button class="btn" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('yt', 1000)">Start</button>
+            </div>
+            <div class="task-row">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="" style="width: 24px; height: 24px;">
+                            <h4>Join Telegram</h4>
+                            <span style="color: var(--accent-color)">+1,000 CTX</span>
+                </div>
+                <button class="btn" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('tg', 1000)">Start</button>
+            </div>
+            <div class="task-row">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/Logo_de_Facebook.png" alt="" style="width: 24px; height: 24px;">
+                    <h4>Follow Facebook</h4>
+                    <span style="color: var(--accent-color)">+1,000 CTX</span>
+                </div>
+                <button class="btn" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('fb', 1000)">Start</button>
+            </div>
+            <div class="task-row">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/X_logo.jpg/960px-X_logo.jpg" alt="" style="width: 24px; height: 24px;">
+                    <h4>Follow Us on X.com</h4>
+                    <span style="color: var(--accent-color)">+1,500 CTX</span>
+                </div>
+                <button class="btn" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('x', 1500)">Start</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- REFERRALS LINK PAGE -->
+    <div id="ref" class="page">
+        <h2>Invite System</h2>
+        <p style="color: #94a3b8; margin-bottom: 20px; text-align: center;">Invite users to earn passive referral shares</p>
+        
+        <div class="card" style="text-align: center;">
+            <p style="margin-bottom: 10px;">Get 100 CTX coin per registered link user</p>
+            <input type="text" id="ref-link" readonly style="width: 100%; padding: 12px; margin: 10px 0; background:#0c0a24; border:1px solid rgba(255,255,255,0.15); color:#fff; text-align:center; border-radius:8px;">
+            <button class="btn" onclick="copyRefLink()">Copy Referral Link</button>
+        </div>
+    </div>
+
+    <!-- BOOST SHOP PAGE -->
+    <div id="shop" class="page">
+        <h2>Boost Shop</h2>
+        <p style="color: #94a3b8; margin-bottom: 20px; text-align: center;">Spend CTX coins to upgrade clicking assets</p>
+        
+        <div class="card">
+            <div class="shop-row">
+                <div>
+                    <h4>Passive Auto Clicker</h4>
+                    <p style="font-size:12px; color:#94a3b8;">Earns 5 CTX passively per second</p>
+                    <span style="color: var(--accent-color)">Price: 10,000 CTX</span>
+                </div>
+                <button class="btn" id="buy-auto" style="width:auto; margin:0; padding: 10px 15px;" onclick="buyUpgrade('auto', 10000)">Buy</button>
+            </div>
+            <div class="shop-row">
+                <div>
+                    <h4>Click Power Multiplier</h4>
+                    <p style="font-size:12px; color:#94a3b8;">Increases tap power value by +2</p>
+                    <span style="color: var(--accent-color)">Price: 5,000 CTX</span>
+                </div>
+                <button class="btn" id="buy-boost" style="width:auto; margin:0; padding: 10px 15px;" onclick="buyUpgrade('boost', 5000)">Buy</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- WALLET PAGE -->
+    <div id="wallet" class="page">
+        <h2>Wallet Connection</h2>
+        <p style="color: #94a3b8; margin-bottom: 20px; text-align: center;">Verify and connect your TON wallet to receive upcoming token drops</p>
+        
+        <div class="card" style="text-align: center;">
+            <div style="font-size: 55px; margin-bottom: 15px;">💎</div>
+            <div style="font-size: 14px; margin-bottom: 15px;" id="ton-connect-btn-container"></div>
+            
+            <div id="wallet-details" style="display:none; margin-top: 15px;">
+                <p style="color:#22c55e;">✔ Active Blockchain Link Connected</p>
+                <div class="wallet-display-box" id="wallet-address-display">EQB...tX97wn2</div>
+                <button class="copy-button" onclick="copyWalletAddress()">Copy Wallet Address</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LEADERBOARD & ADMIN DASHBOARD -->
+    <div id="admin" class="page">
+        <h2 style="color: #f43f5e; margin-bottom: 15px;">Top Leaders & Users (Admin View)</h2>
+        <div class="card" style="max-width: 100%; overflow-x: auto;">
+            <table class="leaderboard-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>User ID</th>
+                        <th>CTX Balance</th>
+                        <th>TON Address</th>
+                    </tr>
+                </thead>
+                <tbody id="admin-leaderboard">
+                    <!-- Dynamic Cloud Data -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- BOTTOM TAB NAVIGATION -->
+    <nav class="nav-bar">
+        <a class="nav-item active" onclick="switchPage('home')">
+            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Home
+        </a>
+        <a class="nav-item" onclick="switchPage('tasks')">
+            <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>Tasks
+        </a>
+        <a class="nav-item" onclick="switchPage('ref')">
+            <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Ref
+        </a>
+        <a class="nav-item" onclick="switchPage('shop')">
+            <svg viewBox="0 0 24 24"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/></svg>Shop
+        </a>
+        <a class="nav-item" onclick="switchPage('wallet')">
+            <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2-.9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Wallet
+        </a>
+        <!-- Secret Admin Button (শুরুতে সম্পূর্ণ অদৃশ্য থাকবে) -->
+        <a class="nav-item" id="nav-admin-btn" style="display: none;" onclick="switchPage('admin')">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>Admin
+        </a>
+    </nav>
+
+    <!-- FIREBASE AND GAME SYSTEM SCRIPT -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCKITS8pdaBi1-icFyZ4CgPxsJe60uszio",
+            authDomain: "ctx-9c92f.firebaseapp.com",
+            databaseURL: "https://ctx-9c92f-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "ctx-9c92f",
+            storageBucket: "ctx-9c92f.firebasestorage.app",
+            messagingSenderId: "853150844818",
+            appId: "1:853150844818:web:a4e4698526a6a61320a34b",
+            measurementId: "G-TEEZQZLPMD"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let userId = localStorage.getItem('ctx_user_id');
+        if (!userId) {
+            userId = 'user_' + Math.floor(Math.random() * 900000 + 100000);
+            localStorage.setItem('ctx_user_id', userId);
+        }
+
+        let localBalance = parseInt(localStorage.getItem('ctx_balance')) || 0;
+        let localEnergy = parseInt(localStorage.getItem('ctx_energy')) || 1000;
+        let localClickPower = parseInt(localStorage.getItem('ctx_clickPower')) || 1;
+        let localHasAuto = localStorage.getItem('ctx_hasAutoClicker') === 'true';
+        let localTasks = JSON.parse(localStorage.getItem('ctx_completedTasks')) || [];
+        let localWallet = localStorage.getItem('ctx_wallet_address') || "";
+
+        let userData = {
+            username: "Player_" + userId.split('_')[1],
+            balance: localBalance,
+            energy: localEnergy,
+            clickPower: localClickPower,
+            hasAutoClicker: localHasAuto,
+            completedTasks: localTasks,
+            walletAddress: localWallet
+        };
+
+        // ফাংশনগুলোকে গ্লোবাল উইন্ডোতে এক্সপোর্ট করা (যাতে বাটন ক্লিক কাজ করে)
+        window.userData = userData;
+        window.db = db;
+        window.ref = ref;
+        window.set = set;
+
+        updateUI();
+
+        const userDbRef = ref(db, 'users/' + userId);
+        get(userDbRef).then((snapshot) => {
+            if (snapshot.exists()) {
+                const cloudData = snapshot.val();
+                userData.balance = Math.max(cloudData.balance || 0, userData.balance);
+                userData.energy = cloudData.energy !== undefined ? cloudData.energy : userData.energy;
+                userData.clickPower = Math.max(cloudData.clickPower || 1, userData.clickPower);
+                userData.hasAutoClicker = cloudData.hasAutoClicker || userData.hasAutoClicker;
+                userData.completedTasks = cloudData.completedTasks || userData.completedTasks;
+                userData.walletAddress = cloudData.walletAddress || userData.walletAddress;
+                
+                saveDataLocally();
+                updateUI();
+            } else {
+                const urlParams = new URLSearchParams(window.location.search);
+                const referrerId = urlParams.get('ref');
+                if (referrerId && referrerId !== userId) {
+                    const refUserRef = ref(db, 'users/' + referrerId);
+                    get(refUserRef).then((snap) => {
+                        if (snap.exists()) {
+                            let rData = snap.val();
+                            rData.balance = (rData.balance || 0) + 100;
+                            set(refUserRef, rData);
+                        }
+                    });
+                }
+                saveDataBoth();
+            }
+        });
+
+        function saveDataLocally() {
+            localStorage.setItem('ctx_balance', userData.balance);
+            localStorage.setItem('ctx_energy', userData.energy);
+            localStorage.setItem('ctx_clickPower', userData.clickPower);
+            localStorage.setItem('ctx_hasAutoClicker', userData.hasAutoClicker);
+            localStorage.setItem('ctx_completedTasks', JSON.stringify(userData.completedTasks));
+            localStorage.setItem('ctx_wallet_address', userData.walletAddress);
+        }
+
+        function saveDataBoth() {
+            saveDataLocally();
+            set(userDbRef, userData);
+        }
+        window.saveDataBoth = saveDataBoth;
+
+        function updateUI() {
+            document.getElementById('balance').innerText = userData.balance.toLocaleString();
+            document.getElementById('energy-text').innerText = `${userData.energy}/1000`;
+            document.getElementById('energy-fill').style.width = `${(userData.energy / 1000) * 100}%`;
+            document.getElementById('ref-link').value = `${window.location.origin}${window.location.pathname}?ref=${userId}`;
+            
+            if (userData.hasAutoClicker) {
+                document.getElementById('buy-auto').disabled = true;
+                document.getElementById('buy-auto').innerText = "Owned";
+            }
+            if (userData.walletAddress) {
+                document.getElementById('wallet-details').style.display = 'block';
+                document.getElementById('wallet-address-display').innerText = userData.walletAddress;
+            }
+        }
+        window.updateUI = updateUI;
+
+        // এনার্জি রিকভারি
+        setInterval(() => {
+            if (userData.energy < 1000) {
+                userData.energy = Math.min(1000, userData.energy + 3);
+                saveDataLocally();
+                updateUI();
+            }
+        }, 1000);
+
+        // ট্যাপ ইভেন্ট
+        const tapBtn = document.getElementById('tap-btn');
+        tapBtn.addEventListener('click', (e) => {
+            if (userData.energy < userData.clickPower) {
+                const energyBox = document.querySelector('.energy-box');
+                energyBox.style.outline = '2px solid red';
+                setTimeout(() => energyBox.style.outline = 'none', 300);
+                return;
+            }
+
+            userData.balance += userData.clickPower;
+            userData.energy -= userData.clickPower;
+            saveDataBoth();
+            updateUI();
+
+            const rect = tapBtn.getBoundingClientRect();
+            const clickX = e.clientX - rect.left - (rect.width / 2);
+            const clickY = e.clientY - rect.top - (rect.height / 2);
+            
+            const rotateX = -clickY * 0.2;
+            const rotateY = clickX * 0.2;
+
+            tapBtn.style.transform = `scale(0.95) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+            setTimeout(() => {
+                tapBtn.style.transform = `scale(1) rotateX(0deg) rotateY(0deg)`;
+            }, 100);
+
+            const floatX = e.clientX ? e.clientX - rect.left : rect.width / 2;
+            const floatY = e.clientY ? e.clientY - rect.top : rect.height / 2;
+
+            const floating = document.createElement('div');
+            floating.className = 'floating-plus';
+            floating.innerText = `+${userData.clickPower}`;
+            floating.style.left = `${floatX}px`;
+            floating.style.top = `${floatY}px`;
+
+            tapBtn.appendChild(floating);
+            setTimeout(() => floating.remove(), 700);
+        });
+
+        // অটো ক্লিকার ইনকাম
+        setInterval(() => {
+            if (userData.hasAutoClicker) {
+                userData.balance += 5;
+                saveDataBoth();
+                updateUI();
+            }
+        }, 1000);
+
+        // টন কানেক্ট হ্যান্ডলার
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: 'https://ton-connect.github.io/demo-dapp-with-react-ui/tonconnect-manifest.json',
+            buttonRootId: 'ton-connect-btn-container'
+        });
+
+        tonConnectUI.onStatusChange(wallet => {
+            if (wallet) {
+                const userFriendlyAddress = wallet.account.address;
+                userData.walletAddress = userFriendlyAddress.substring(0, 10) + "..." + userFriendlyAddress.substring(userFriendlyAddress.length - 8);
+                
+                document.getElementById('wallet-details').style.display = 'block';
+                document.getElementById('wallet-address-display').innerText = userFriendlyAddress;
+                
+                saveDataBoth();
+                updateUI();
+            } else {
+                userData.walletAddress = "";
+                document.getElementById('wallet-details').style.display = 'none';
+                saveDataBoth();
+                updateUI();
+            }
+        });
+
+        // এডমিন লিডারবোর্ড লাইভ রেন্ডার
+        const allUsersRef = ref(db, 'users');
+        onValue(allUsersRef, (snapshot) => {
+            const data = snapshot.val();
+            if (!data) return;
+
+            const sortedUsers = Object.keys(data).map(key => ({
+                id: key,
+                ...data[key]
+            })).sort((a, b) => (b.balance || 0) - (a.balance || 0));
+
+            const leaderboardBody = document.getElementById('admin-leaderboard');
+            leaderboardBody.innerHTML = '';
+
+            sortedUsers.forEach((user, index) => {
+                const displayName = user.id === userId ? "You" : user.id;
+                const walletTag = user.walletAddress ? `<span style="color:#22c55e; font-size:11px;">${user.walletAddress}</span>` : `<span style="color:#64748b;">Not Linked</span>`;
+                const row = `<tr>
+                    <td><span class="rank-badge">${index + 1}</span></td>
+                    <td><strong>${displayName}</strong></td>
+                    <td style="color: var(--accent-color); font-weight: bold;">${(user.balance || 0).toLocaleString()}</td>
+                    <td>${walletTag}</td>
+                </tr>`;
+                leaderboardBody.innerHTML += row;
+            });
+        });
+    </script>
+
+    <!-- UI NAVIGATION AND BUTTON HANDLERS -->
+    <script>
+        // গ্লোবাল চেক ইউআরএল প্যারামিটার পেজ লোড হওয়ার সাথে সাথে
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('mode') === 'admin') {
+                document.getElementById('nav-admin-btn').style.display = 'flex';
+            }
+        });
+
+        function switchPage(pageId) {
+            const pages = document.querySelectorAll('.page');
+            pages.forEach(page => page.classList.remove('active'));
+
+            document.getElementById(pageId).classList.add('active');
+
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => item.classList.remove('active'));
+            
+            const indexMap = { 'home': 0, 'tasks': 1, 'ref': 2, 'shop': 3, 'wallet': 4, 'admin': 5 };
+            navItems[indexMap[pageId]].classList.add('active');
+        }
+
+        function completeTask(taskName, reward) {
+            if (window.userData.completedTasks.includes(taskName)) {
+                alert("You have already completed this task!");
+                return;
+            }
+
+            let taskUrl = "https://youtube.com";
+            if (taskName === 'tg') taskUrl = "https://t.me/your_channel";
+            if (taskName === 'fb') taskUrl = "https://facebook.com";
+            if (taskName === 'x') taskUrl = "https://x.com";
+
+            window.open(taskUrl, '_blank');
+
+            const clickedButton = event.target;
+            let timeLeft = 20;
+            
+            clickedButton.disabled = true;
+            clickedButton.style.background = "#475569";
+            clickedButton.innerText = `Wait ${timeLeft}s`;
+
+            const countdown = setInterval(() => {
+                timeLeft--;
+                clickedButton.innerText = `Wait ${timeLeft}s`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(countdown);
+                    
+                    window.userData.balance += reward;
+                    window.userData.completedTasks.push(taskName);
+                    
+                    window.saveDataBoth();
+                    window.updateUI();
+                    
+                    confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+                    alert(`Success! Task rewarded with ${reward.toLocaleString()} CTX!`);
+                    
+                    clickedButton.innerText = "Completed ✔";
+                    clickedButton.style.background = "#22c55e";
+                }
+            }, 1000);
+        }
+
+        function buyUpgrade(type, price) {
+            if (window.userData.balance < price) {
+                alert("Insufficient CTX balance!");
+                return;
+            }
+
+            if (type === 'auto') {
+                if (window.userData.hasAutoClicker) return;
+                window.userData.balance -= price;
+                window.userData.hasAutoClicker = true;
+            } else if (type === 'boost') {
+                window.userData.balance -= price;
+                window.userData.clickPower += 2;
+            }
+            window.saveDataBoth();
+            window.updateUI();
+            alert("Upgrade successful!");
+        }
+
+        function copyRefLink() {
+            const copyText = document.getElementById("ref-link");
+            copyText.select();
+            copyText.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(copyText.value);
+            alert("Referral link copied!");
+        }
+
+        function copyWalletAddress() {
+            const address = document.getElementById('wallet-address-display').innerText;
+            navigator.clipboard.writeText(address);
+            alert("Wallet address copied!");
+        }
+    </script>
+</body>
+</html>
