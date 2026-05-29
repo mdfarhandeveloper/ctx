@@ -4,48 +4,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CTX Coin - The Next-Gen Tap Game</title>
-    <script>
+   <script>
     (function() {
-        // এখানে আপনার ইচ্ছামতো যেকোনো গোপন পাসওয়ার্ড বা পিন দিন
-        const SECRET_PASSWORD = "farhanali31@"; 
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const isAdminParam = urlParams.get('admin') === SECRET_PASSWORD;
+        // এখানে আপনার ইচ্ছামতো যেকোনো গোপন পাসওয়ার্ড দিন
+        const ADMIN_PASSWORD = "farhanali31@"; 
 
         const ua = navigator.userAgent || navigator.vendor || window.opera;
         const isTelegram = /Telegram/i.test(ua) || (window.Telegram && window.Telegram.WebApp);
 
-        // ইউজার যদি টেলিগ্রাম থেকে না আসে এবং সঠিক অ্যাডমিন পাসওয়ার্ডও না থাকে, তবে ব্লক হবে
-        if (!isTelegram && !isAdminParam) {
-            document.documentElement.innerHTML = `
-                <style>
-                    body {
-                        background: #090514;
-                        color: #ffffff;
-                        font-family: system-ui, sans-serif;
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                        height: 100vh;
-                        margin: 0;
-                        text-align: center;
-                    }
-                    .error-box {
-                        background: rgba(255, 255, 255, 0.05);
-                        padding: 30px;
-                        border-radius: 16px;
-                        border: 1px solid rgba(255, 255, 255, 0.1);
-                        max-width: 400px;
-                    }
-                    h1 { color: #f43f5e; margin-bottom: 10px; font-size: 24px; }
-                    p { color: #94a3b8; font-size: 15px; }
-                </style>
-                <div class="error-box">
-                    <h1>Access Denied! ❌</h1>
-                    <p>This game can only be played inside the <strong>Telegram Mini App</strong>.</p>
-                </div>
-            `;
-            window.stop(); // বাকি কোড লোড হওয়া বন্ধ করবে
+        // ইউজার যদি টেলিগ্রাম থেকে না আসে (অর্থাৎ ক্রোম/সাফারি ব্রাউজার হয়)
+        if (!isTelegram) {
+            // ব্রাউজারে একটি পপ-আপ পাসওয়ার্ড বক্স আসবে
+            const userPassword = prompt("Enter Admin Password to Access:");
+
+            if (userPassword === ADMIN_PASSWORD) {
+                // পাসওয়ার্ড সঠিক হলে ইউআরএল-এ অটোমেটিক ?mode=admin যোগ করে পেজটি রিলোড হবে
+                const currentUrl = new URL(window.location.href);
+                if (currentUrl.searchParams.get('mode') !== 'admin') {
+                    currentUrl.searchParams.set('mode', 'admin');
+                    window.location.href = currentUrl.toString();
+                }
+            } else {
+                // পাসওয়ার্ড ভুল হলে বা ক্যানসেল করলে Access Denied দেখাবে
+                document.documentElement.innerHTML = `
+                    <style>
+                        body {
+                            background: #090514;
+                            color: #ffffff;
+                            font-family: system-ui, sans-serif;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            height: 100vh;
+                            margin: 0;
+                            text-align: center;
+                        }
+                        .error-box {
+                            background: rgba(255, 255, 255, 0.05);
+                            padding: 30px;
+                            border-radius: 16px;
+                            border: 1px solid rgba(255, 255, 255, 0.1);
+                            max-width: 400px;
+                        }
+                        h1 { color: #f43f5e; margin-bottom: 10px; font-size: 24px; }
+                        p { color: #94a3b8; font-size: 15px; }
+                        .btn-retry {
+                            background: #fbbf24; color: #000; border: none; padding: 10px 20px;
+                            border-radius: 8px; font-weight: bold; cursor: pointer; margin-top: 15px;
+                        }
+                    </style>
+                    <div class="error-box">
+                        <h1>Access Denied! ❌</h1>
+                        <p>Incorrect password or unauthorized browser access.</p>
+                        <button class="btn-retry" onclick="window.location.reload()">Try Again</button>
+                    </div>
+                `;
+                window.stop(); // বাকি কোড লোড হওয়া বন্ধ করবে
+            }
         }
     })();
 </script>
