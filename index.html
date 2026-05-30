@@ -500,34 +500,44 @@
         const urlParams = new URLSearchParams(window.location.search);
         let referrerId = urlParams.get('ref') || urlParams.get('tgWebAppStartParam'); 
 
-        get(ref(db, 'users/' + userId)).then((snapshot) => {
-            if (snapshot.exists()) {
-                const cloudData = snapshot.val();
-                userData.balance = Math.max(cloudData.balance || 0, userData.balance);
-                userData.clickPower = Math.max(cloudData.clickPower || 1, userData.clickPower);
-                userData.hasAutoClicker = cloudData.hasAutoClicker || userData.hasAutoClicker;
-                userData.completedTasks = cloudData.completedTasks || userData.completedTasks;
-                userData.walletAddress = cloudData.walletAddress || userData.walletAddress;
-                
-                let lastSaved = cloudData.lastSavedTime || userData.lastSavedTime;
-                let timePassed = Math.floor((Date.now() - lastSaved) / 1000);
-                userData.energy = Math.min(1000, (cloudData.energy || userData.energy) + (timePassed * 3));
-                
-                window.saveDataBoth();
-                updateUI();
-            } else {
-                if (referrerId && referrerId !== userId) {
-                    get(ref(db, 'users/' + referrerId)).then((snap) => {
-                        if (snap.exists()) {
-                            let rData = snap.val();
-                            rData.balance = (rData.balance || 0) + 100;
-                            set(ref(db, 'users/' + referrerId), rData);
-                        }
-                    });
+        // ✔️ AI NEW UPDATED CODE TA BOSAIA DEN:
+get(ref(db, 'users/' + userId)).then((snapshot) => {
+    if (snapshot.exists()) {
+        const cloudData = snapshot.val();
+        userData.balance = Math.max(cloudData.balance || 0, userData.balance);
+        userData.clickPower = Math.max(cloudData.clickPower || 1, userData.clickPower);
+        userData.hasAutoClicker = cloudData.hasAutoClicker || userData.hasAutoClicker;
+        userData.completedTasks = cloudData.completedTasks || userData.completedTasks;
+        userData.walletAddress = cloudData.walletAddress || userData.walletAddress;
+        
+        let lastSaved = cloudData.lastSavedTime || userData.lastSavedTime;
+        let timePassed = Math.floor((Date.now() - lastSaved) / 1000);
+        userData.energy = Math.min(1000, (cloudData.energy || userData.energy) + (timePassed * 3));
+        
+        window.saveDataBoth();
+        updateUI();
+    } else {
+        // ⚠️ FIX: Database e na thakle ar fone jodi purano balance thake (Tar mane Admin delete korse)
+        if (localBalance > 0 || localTasks.length > 0 || localHasAuto) {
+            alert("Your account has been reset or removed by Admin!");
+            localStorage.clear(); // Phoner shob data muche fela holo
+            window.location.reload(); // Page refresh kore notun fresh ID dewa holo
+            return;
+        }
+
+        // Ekdom fresh new user er khetre referral kaj korbe
+        if (referrerId && referrerId !== userId) {
+            get(ref(db, 'users/' + referrerId)).then((snap) => {
+                if (snap.exists()) {
+                    let rData = snap.val();
+                    rData.balance = (rData.balance || 0) + 100;
+                    set(ref(db, 'users/' + referrerId), rData);
                 }
-                window.saveDataBoth();
-            }
-        });
+            });
+        }
+        window.saveDataBoth();
+    }
+});
 
         function updateUI() {
             document.getElementById('balance').innerText = userData.balance.toLocaleString();
