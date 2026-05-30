@@ -104,17 +104,40 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
+        /* Header Layout for Search and Export Button */
+        .controls-wrapper {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
         .search-box {
-            width: 100%;
+            flex: 1;
             padding: 14px;
             background: rgba(0, 0, 0, 0.4);
             border: 1px solid rgba(255, 255, 255, 0.15);
             color: #fff;
             border-radius: 10px;
             font-size: 16px;
-            margin-bottom: 20px;
             box-sizing: border-box;
             outline: none;
+        }
+
+        .btn-export {
+            background: #22c55e;
+            color: white;
+            border: none;
+            padding: 0 20px;
+            border-radius: 10px;
+            font-size: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn-export:hover {
+            background: #16a34a;
         }
 
         .leaderboard-table {
@@ -181,7 +204,10 @@
         <p style="color: #94a3b8; margin-bottom: 25px;">Live monitoring, search, and delete controls for all game network records.</p>
         
         <div class="card">
-            <input type="text" id="admin-search" class="search-box" placeholder="🔍 Search by User ID or TON Wallet Address..." oninput="triggerAdminSearch()">
+            <div class="controls-wrapper">
+                <input type="text" id="admin-search" class="search-box" placeholder="🔍 Search by User ID or TON Wallet Address..." oninput="triggerAdminSearch()">
+                <button class="btn-export" onclick="exportToCSV()">Export CSV</button>
+            </div>
             
             <div style="overflow-x: auto;">
                 <table class="leaderboard-table">
@@ -224,10 +250,10 @@
 
         window.allUsersData = [];
 
-        // পাসওয়ার্ড চেক করার ফাংশন
+        // পাসওয়ার্ড চেক করার ফাংশন
         window.checkAdminLogin = function() {
             const inputPass = document.getElementById('admin-pass').value;
-            const SECRET_PASSWORD = "admin1234"; // 👈 আপনার সিক্রেট পাসওয়ার্ডটি এখানে দিন
+            const SECRET_PASSWORD = "admin1234"; // 👈 আপনার সিক্রেট পাসওয়ার্ডটি এখানে দিন
 
             if(inputPass === SECRET_PASSWORD) {
                 // সেশন সেভ করা হচ্ছে যাতে বারবার রিফ্রেশ করলে লগইন না চাবে
@@ -247,11 +273,11 @@
             document.body.style.display = 'block'; 
             document.getElementById('dashboard-box').style.display = 'block';
 
-            // রিয়েলটাইম ডেটা লোড শুরু হবে লগইন সফল হওয়ার পরেই
+            // রিয়েলটাইম ডেটা লোড শুরু হবে লগইন সফল হওয়ার পরেই
             loadFirebaseDatabase();
         }
 
-        // পেজ লোড হওয়ার সময় চেক করবে অলরেডি লগইনড কিনা
+        // পেজ লোড হওয়ার সময় চেক করবে অলরেডি লগইনড কিনা
         window.addEventListener('DOMContentLoaded', () => {
             if(sessionStorage.getItem('isAdminLoggedIn') === 'true') {
                 showDashboard();
@@ -325,6 +351,41 @@
             });
 
             window.renderAdminTable(filtered);
+        }
+
+        // CSV এক্সপোর্ট করার মূল ফাংশন
+        function exportToCSV() {
+            if (!window.allUsersData || window.allUsersData.length === 0) {
+                alert("No data available to export!");
+                return;
+            }
+
+            // CSV এর জন্য হেডার তৈরি
+            let csvContent = "data:text/csv;charset=utf-8,";
+            csvContent += "Rank,User ID,CTX Balance,TON Wallet Address";
+
+            // ডাটাবেজের ইউজার লুপ করে CSV ফরম্যাটে সাজানো
+            window.allUsersData.forEach((user, index) => {
+                const rank = index + 1;
+                const userId = user.id ? `"${user.id}"` : "";
+                const balance = user.balance || 0;
+                const wallet = user.walletAddress ? `"${user.walletAddress}"` : "Not Connected";
+                
+                csvContent += `\n${rank},${userId},${balance},${wallet}`;
+            });
+
+            // ব্রাউজারে ফাইল ডাউনলোডের ব্যবস্থা করা
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            
+            // বর্তমান তারিখসহ ফাইলের নাম দেওয়া হচ্ছে (যেমন: ctx_users_2026-05-30.csv)
+            const today = new Date().toISOString().split('T')[0];
+            link.setAttribute("download", `ctx_users_${today}.csv`);
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         }
     </script>
 </body>
