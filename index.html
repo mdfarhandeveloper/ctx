@@ -332,7 +332,7 @@
                         <span style="color: var(--accent-color)">+1,000 CTX</span>
                     </div>
                 </div>
-                <button class="btn" id="task-btn-yt" style="width:auto; margin:0; padding: 10px 15px;" href="https://www.youtube.com/@ctxcoin">Start</button>
+                <button class="btn" id="task-btn-yt" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('yt', 1000, 'https://www.youtube.com/@ctxcoin', this)">Start</button>
             </div>
             <div class="task-row">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -342,7 +342,7 @@
                         <span style="color: var(--accent-color)">+1,000 CTX</span>
                     </div>
                 </div>
-                <button class="btn" id="task-btn-tg" style="width:auto; margin:0; padding: 10px 15px;" href="https://t.me/ctxcoin_official">Start</button>
+                <button class="btn" id="task-btn-tg" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('tg', 1000, 'https://t.me/ctxcoin_official', this)">Start</button>
             </div>
             <div class="task-row">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -352,7 +352,7 @@
                         <span style="color: var(--accent-color)">+1,000 CTX</span>
                     </div>
                 </div>
-                <button class="btn" id="task-btn-fb" style="width:auto; margin:0; padding: 10px 15px;" href="https://www.facebook.com/profile.php?id=61590323648542">Start</button>
+                <button class="btn" id="task-btn-fb" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('fb', 1000, 'https://www.facebook.com/profile.php?id=61590323648542', this)">Start</button>
             </div>
             <div class="task-row">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -362,7 +362,7 @@
                         <span style="color: var(--accent-color)">+1,500 CTX</span>
                     </div>
                 </div>
-                <button class="btn" id="task-btn-x" style="width:auto; margin:0; padding: 10px 15px;" href="https://x.com/md_ali30660">Start</button>
+                <button class="btn" id="task-btn-x" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('x', 1500, 'https://x.com/md_ali30660', this)">Start</button>
             </div>
         </div>
     </div>
@@ -516,7 +516,6 @@
                 userData.completedTasks = cloudData.completedTasks || userData.completedTasks;
                 userData.walletAddress = cloudData.walletAddress || userData.walletAddress;
                 
-                // 🛠️ CRITICAL FIX: গ্লোবাল ব্রাউজার রেফারেন্স সিঙ্ক (ট্যাপ ভ্যালু আপডেট রাখার জন্য)
                 localClickPower = userData.clickPower;
                 localBalance = userData.balance;
 
@@ -561,7 +560,6 @@
             document.getElementById('energy-fill').style.width = `${(userData.energy / 1000) * 100}%`;
             document.getElementById('ref-link').value = `https://t.me/${TELEGRAM_BOT_USERNAME}?startapp=${userId}`;
             
-            // 🛠️ FIX: কারেন্ট লেভেল অনুযায়ী বাটনে পাওয়ার ডাইনামিকালি দেখাবে
             document.getElementById('buy-boost').innerText = `Buy (+${userData.clickPower + 2})`;
             
             if (userData.hasAutoClicker) {
@@ -619,7 +617,6 @@
 
             const floating = document.createElement('div');
             floating.className = 'floating-plus';
-            // 🛠️ FIX: ফ্লোটিং টেক্সট এখন লাইভ পাওয়ার শো করবে
             floating.innerText = `+${userData.clickPower}`;
             floating.style.left = `${floatX}px`;
             floating.style.top = `${floatY}px`;
@@ -677,20 +674,31 @@
             navItems.forEach(item => item.classList.remove('active'));
         }
 
-        function completeTask(taskName, reward, clickedButton) {
+        // 🛠️ FIX GLOBAL FUNCTION: completeTask global context-এ সেট করা হলো এবং window reference ঠিক করা হলো
+        function completeTask(taskName, reward, targetUrl, clickedButton) {
+            // নতুন ট্যাবে সোশ্যাল লিঙ্ক ওপেন করার সিস্টেম
+            window.open(targetUrl, '_blank');
 
             let timeLeft = 20;
             clickedButton.disabled = true;
+            
             const countdown = setInterval(() => {
                 timeLeft--;
                 clickedButton.innerText = `Wait ${timeLeft}s`;
                 if (timeLeft <= 0) {
                     clearInterval(countdown);
+                    
+                    // ইউজারের লোকাল অবজেক্ট এবং ডাটাবেজ আপডেট
                     window.userData.balance += reward;
+                    if(!window.userData.completedTasks) {
+                        window.userData.completedTasks = [];
+                    }
                     window.userData.completedTasks.push(taskName);
                     window.userData.lastSavedTime = Date.now();
+                    
                     window.saveDataBoth();
                     window.updateUI();
+                    
                     confetti({ particleCount: 50 });
                     clickedButton.innerText = "Completed ✔";
                     clickedButton.style.background = "#22c55e";
@@ -698,7 +706,6 @@
             }, 1000);
         }
 
-        // 🛠️ FIX CORE UPGRADE LOGIC (১০০% সচল ও ডাইনামিক)
         function buyUpgrade(type, price) {
             if (window.userData.balance < price) {
                 alert("Insufficient CTX balance!");
@@ -708,7 +715,6 @@
                 if (window.userData.hasAutoClicker) return;
                 window.userData.hasAutoClicker = true;
             } else if (type === 'boost') {
-                // ক্লিক পাওয়ার ২ বাড়িয়ে দেওয়া হলো এবং গ্লোবাল অবজেক্টে সিঙ্ক করা হলো
                 window.userData.clickPower += 2;
             }
             window.userData.balance -= price;
@@ -723,6 +729,12 @@
             copyText.select();
             navigator.clipboard.writeText(copyText.value);
             alert("Copied!");
+        }
+        
+        function copyWalletAddress() {
+            const address = document.getElementById('wallet-address-display').innerText;
+            navigator.clipboard.writeText(address);
+            alert("Wallet address copied!");
         }
     </script>
 </body>
