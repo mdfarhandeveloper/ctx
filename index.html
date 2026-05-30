@@ -395,7 +395,7 @@
                 <div>
                     <h4>Click Power Multiplier</h4>
                     <p style="font-size:12px; color:#94a3b8;">Increases tap power value by +2</p>
-                    <span style="color: var(--accent-color)">Price: 5,000 CTX</span>
+                    <span style="color: var(--accent-color)" id="click-power-price">Price: 5,000 CTX</span>
                 </div>
                 <button class="btn" id="buy-boost" style="width:auto; margin:0; padding: 10px 15px;" onclick="buyUpgrade('boost', 5000)">Buy</button>
             </div>
@@ -486,13 +486,11 @@
 
         window.userData = userData;
         
-        // 🛡️ Safe Security Variable: Jodi admin user delete kore, tahole overwrite tracking off hobe
         let isAccountDeletedByAdmin = false;
 
         window.saveDataBoth = function() {
-            if (isAccountDeletedByAdmin) return; // Account delete thakle backend dynamic saving off!
+            if (isAccountDeletedByAdmin) return;
             
-            userData.lastSavedTime = Date.now();
             localStorage.setItem('ctx_balance', userData.balance);
             localStorage.setItem('ctx_energy', userData.energy);
             localStorage.setItem('ctx_clickPower', userData.clickPower);
@@ -508,7 +506,6 @@
         const urlParams = new URLSearchParams(window.location.search);
         let referrerId = urlParams.get('ref') || urlParams.get('tgWebAppStartParam'); 
 
-        // 🔄 Realtime Snapshot Synchronization Engine (Fiks: Live Delete Check)
         const userDbRef = ref(db, 'users/' + userId);
         onValue(userDbRef, (snapshot) => {
             if (snapshot.exists()) {
@@ -519,7 +516,10 @@
                 userData.completedTasks = cloudData.completedTasks || userData.completedTasks;
                 userData.walletAddress = cloudData.walletAddress || userData.walletAddress;
                 
-                // Only sync offline gains on first loading loop
+                // 🛠️ CRITICAL FIX: গ্লোবাল ব্রাউজার রেফারেন্স সিঙ্ক (ট্যাপ ভ্যালু আপডেট রাখার জন্য)
+                localClickPower = userData.clickPower;
+                localBalance = userData.balance;
+
                 if (localLastSavedTime === userData.lastSavedTime) {
                     let lastSaved = cloudData.lastSavedTime || userData.lastSavedTime;
                     let timePassed = Math.floor((Date.now() - lastSaved) / 1000);
@@ -527,27 +527,28 @@
                     if (userData.hasAutoClicker) {
                         userData.balance += (timePassed * 5);
                     }
-                    localLastSavedTime = 0; // mark processed
+                    localLastSavedTime = 0; 
                 }
                 
                 updateUI();
             } else {
-                // ⚠️ TARGET CRITICAL FIX: Database snapshot faka mane admin account ti remove koreche!
                 if (localBalance > 0 || localTasks.length > 0 || localHasAuto) {
-                    isAccountDeletedByAdmin = true; // freeze memory stream
-                    localStorage.clear(); // Clear storage instantly
+                    isAccountDeletedByAdmin = true; 
+                    localStorage.clear(); 
                     alert("Your account has been deleted by Admin!");
-                    window.location.reload(); // Hard boot fresh account
+                    window.location.reload(); 
                 } else {
-                    // Fresh new user registered branch
                     if (referrerId && referrerId !== userId) {
-                        get(ref(db, 'users/' + referrerId)).then((snap) => {
+                        const refUserPath = ref(db, 'users/' + referrerId);
+                        get(refUserPath).then((snap) => {
                             if (snap.exists()) {
                                 let rData = snap.val();
                                 rData.balance = (rData.balance || 0) + 100;
-                                set(ref(db, 'users/' + referrerId), rData);
+                                set(refUserPath, rData);
                             }
-                        });
+                        }).catch(e => console.log("Referral track error"));
+                        
+                        referrerId = null;
                     }
                     window.saveDataBoth();
                 }
@@ -559,6 +560,9 @@
             document.getElementById('energy-text').innerText = `${userData.energy}/1000`;
             document.getElementById('energy-fill').style.width = `${(userData.energy / 1000) * 100}%`;
             document.getElementById('ref-link').value = `https://t.me/${TELEGRAM_BOT_USERNAME}?startapp=${userId}`;
+            
+            // 🛠️ FIX: কারেন্ট লেভেল অনুযায়ী বাটনে পাওয়ার ডাইনামিকালি দেখাবে
+            document.getElementById('buy-boost').innerText = `Buy (+${userData.clickPower + 2})`;
             
             if (userData.hasAutoClicker) {
                 document.getElementById('buy-auto').disabled = true;
@@ -581,9 +585,8 @@
         }
         window.updateUI = updateUI;
 
-        // 🔄 Live Clock Engine
         setInterval(() => {
-            if (isAccountDeletedByAdmin) return; // Stop increment loops if deleted
+            if (isAccountDeletedByAdmin) return; 
             
             let changed = false;
             if (userData.energy < 1000) {
@@ -596,6 +599,7 @@
                 changed = true;
             }
             if (changed) {
+                userData.lastSavedTime = Date.now();
                 window.saveDataBoth();
                 updateUI();
             }
@@ -615,6 +619,7 @@
 
             const floating = document.createElement('div');
             floating.className = 'floating-plus';
+            // 🛠️ FIX: ফ্লোটিং টেক্সট এখন লাইভ পাওয়ার শো করবে
             floating.innerText = `+${userData.clickPower}`;
             floating.style.left = `${floatX}px`;
             floating.style.top = `${floatY}px`;
@@ -627,6 +632,7 @@
             for (let i = 0; i < e.changedTouches.length; i++) {
                 handleTap(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
             }
+            userData.lastSavedTime = Date.now();
             window.saveDataBoth();
             updateUI();
         }, { passive: false });
@@ -634,6 +640,7 @@
         tapBtn.addEventListener('click', (e) => {
             if (e.pointerType === 'touch') return;
             handleTap(e.clientX, e.clientY);
+            userData.lastSavedTime = Date.now();
             window.saveDataBoth();
             updateUI();
         });
@@ -646,6 +653,7 @@
         tonConnectUI.onStatusChange(wallet => {
             if (wallet) {
                 userData.walletAddress = wallet.account.address;
+                userData.lastSavedTime = Date.now();
                 window.saveDataBoth();
                 updateUI();
             }
@@ -682,6 +690,7 @@
                     clearInterval(countdown);
                     window.userData.balance += reward;
                     window.userData.completedTasks.push(taskName);
+                    window.userData.lastSavedTime = Date.now();
                     window.saveDataBoth();
                     window.updateUI();
                     confetti({ particleCount: 50 });
@@ -691,6 +700,7 @@
             }, 1000);
         }
 
+        // 🛠️ FIX CORE UPGRADE LOGIC (১০০% সচল ও ডাইনামিক)
         function buyUpgrade(type, price) {
             if (window.userData.balance < price) {
                 alert("Insufficient CTX balance!");
@@ -700,9 +710,11 @@
                 if (window.userData.hasAutoClicker) return;
                 window.userData.hasAutoClicker = true;
             } else if (type === 'boost') {
+                // ক্লিক পাওয়ার ২ বাড়িয়ে দেওয়া হলো এবং গ্লোবাল অবজেক্টে সিঙ্ক করা হলো
                 window.userData.clickPower += 2;
             }
             window.userData.balance -= price;
+            window.userData.lastSavedTime = Date.now();
             window.saveDataBoth();
             window.updateUI();
             alert("Upgrade successful!");
