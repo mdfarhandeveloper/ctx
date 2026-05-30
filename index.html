@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>CTX Coin - The Next-Gen Tap Game</title>
-   
+    
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <style>
@@ -127,6 +127,7 @@
         .coin-wrapper {
             margin: auto 0;
             perspective: 1000px;
+            touch-action: none;
         }
 
         .main-coin {
@@ -151,6 +152,7 @@
             justify-content: center;
             align-items: center;
             background: rgba(0,0,0,0.15);
+            pointer-events: none;
         }
 
         .coin-symbol img {
@@ -159,6 +161,7 @@
             object-fit: contain;
             display: block;
             filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));
+            pointer-events: none;
         }
 
         .energy-box {
@@ -169,6 +172,7 @@
             padding: 12px;
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: outline 0.3s ease;
         }
 
         .energy-header {
@@ -204,6 +208,7 @@
             pointer-events: none;
             text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
             animation: bounceFloatUp 0.7s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            z-index: 999;
         }
 
         @keyframes bounceFloatUp {
@@ -285,35 +290,6 @@
         .copy-button:active {
             background: rgba(255, 255, 255, 0.2);
         }
-
-        .leaderboard-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        .leaderboard-table th, .leaderboard-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .leaderboard-table th {
-            color: #94a3b8;
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-
-        .rank-badge {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            line-height: 24px;
-            text-align: center;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.1);
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
@@ -356,7 +332,7 @@
                         <span style="color: var(--accent-color)">+1,000 CTX</span>
                     </div>
                 </div>
-                <button class="btn" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('yt', 1000, this)">Start</button>
+                <button class="btn" id="task-btn-yt" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('yt', 1000, this)">Start</button>
             </div>
             <div class="task-row">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -366,7 +342,7 @@
                         <span style="color: var(--accent-color)">+1,000 CTX</span>
                     </div>
                 </div>
-                <button class="btn" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('tg', 1000, this)">Start</button>
+                <button class="btn" id="task-btn-tg" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('tg', 1000, this)">Start</button>
             </div>
             <div class="task-row">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -376,7 +352,7 @@
                         <span style="color: var(--accent-color)">+1,000 CTX</span>
                     </div>
                 </div>
-                <button class="btn" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('fb', 1000, this)">Start</button>
+                <button class="btn" id="task-btn-fb" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('fb', 1000, this)">Start</button>
             </div>
             <div class="task-row">
                 <div style="display: flex; align-items: center; gap: 12px;">
@@ -386,7 +362,7 @@
                         <span style="color: var(--accent-color)">+1,500 CTX</span>
                     </div>
                 </div>
-                <button class="btn" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('x', 1500, this)">Start</button>
+                <button class="btn" id="task-btn-x" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('x', 1500, this)">Start</button>
             </div>
         </div>
     </div>
@@ -442,24 +418,6 @@
         </div>
     </div>
 
-    <div id="admin" class="page">
-        <h2 style="color: #f43f5e; margin-bottom: 15px;">Top Leaders & Users (Admin View)</h2>
-        <div class="card" style="max-width: 100%; overflow-x: auto;">
-            <table class="leaderboard-table">
-                <thead>
-                    <tr>
-                        <th>Rank</th>
-                        <th>User ID</th>
-                        <th>CTX Balance</th>
-                        <th>TON Address</th>
-                    </tr>
-                </thead>
-                <tbody id="admin-leaderboard">
-                    </tbody>
-            </table>
-        </div>
-    </div>
-
     <nav class="nav-bar">
         <a class="nav-item active" onclick="switchPage('home')">
             <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Home
@@ -476,14 +434,12 @@
         <a class="nav-item" onclick="switchPage('wallet')">
             <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2-.9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Wallet
         </a>
-        <a class="nav-item" id="nav-admin-btn" style="display: none;" onclick="switchPage('admin')">
-            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>Admin
-        </a>
+        
     </nav>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCKITS8pdaBi1-icFyZ4CgPxsJe60uszio",
@@ -499,7 +455,6 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // গুরুত্বপূর্ণ: আপনার টেলিগ্রাম বটের ইউজারনেম এখানে দিন (বিনা @)
         const TELEGRAM_BOT_USERNAME = "ctxcoin_bot"; 
 
         let userId = localStorage.getItem('ctx_user_id');
@@ -514,6 +469,7 @@
         let localHasAuto = localStorage.getItem('ctx_hasAutoClicker') === 'true';
         let localTasks = JSON.parse(localStorage.getItem('ctx_completedTasks')) || [];
         let localWallet = localStorage.getItem('ctx_wallet_address') || "";
+        let localLastSavedTime = parseInt(localStorage.getItem('ctx_last_saved_time')) || Date.now();
 
         let userData = {
             username: "Player_" + userId.split('_')[1],
@@ -522,69 +478,61 @@
             clickPower: localClickPower,
             hasAutoClicker: localHasAuto,
             completedTasks: localTasks,
-            walletAddress: localWallet
+            walletAddress: localWallet,
+            lastSavedTime: localLastSavedTime
         };
 
         window.userData = userData;
-        window.db = db;
-        window.ref = ref;
-        window.set = set;
-
-        updateUI();
-
-        // ইউআরএল থেকে রেফারেল আইডি ডিটেক্ট করা (টেলিগ্রাম মিনি অ্যাপ tgWebAppStartParam সাপোর্ট করে)
-        const urlParams = new URLSearchParams(window.location.search);
-        let referrerId = urlParams.get('ref') || urlParams.get('tgWebAppStartParam'); 
-
-        const userDbRef = ref(db, 'users/' + userId);
-        get(userDbRef).then((snapshot) => {
-            if (snapshot.exists()) {
-                const cloudData = snapshot.val();
-                userData.balance = Math.max(cloudData.balance || 0, userData.balance);
-                userData.energy = cloudData.energy !== undefined ? cloudData.energy : userData.energy;
-                userData.clickPower = Math.max(cloudData.clickPower || 1, userData.clickPower);
-                userData.hasAutoClicker = cloudData.hasAutoClicker || userData.hasAutoClicker;
-                userData.completedTasks = cloudData.completedTasks || userData.completedTasks;
-                userData.walletAddress = cloudData.walletAddress || userData.walletAddress;
-                
-                saveDataLocally();
-                updateUI();
-            } else {
-                if (referrerId && referrerId !== userId) {
-                    const refUserRef = ref(db, 'users/' + referrerId);
-                    get(refUserRef).then((snap) => {
-                        if (snap.exists()) {
-                            let rData = snap.val();
-                            rData.balance = (rData.balance || 0) + 100;
-                            set(refUserRef, rData);
-                        }
-                    });
-                }
-                saveDataBoth();
-            }
-        });
-
-        function saveDataLocally() {
+        window.saveDataBoth = function() {
+            userData.lastSavedTime = Date.now();
             localStorage.setItem('ctx_balance', userData.balance);
             localStorage.setItem('ctx_energy', userData.energy);
             localStorage.setItem('ctx_clickPower', userData.clickPower);
             localStorage.setItem('ctx_hasAutoClicker', userData.hasAutoClicker);
             localStorage.setItem('ctx_completedTasks', JSON.stringify(userData.completedTasks));
             localStorage.setItem('ctx_wallet_address', userData.walletAddress);
-        }
+            localStorage.setItem('ctx_last_saved_time', userData.lastSavedTime);
+            set(ref(db, 'users/' + userId), userData);
+        };
 
-        function saveDataBoth() {
-            saveDataLocally();
-            set(userDbRef, userData);
-        }
-        window.saveDataBoth = saveDataBoth;
+        updateUI();
+
+        const urlParams = new URLSearchParams(window.location.search);
+        let referrerId = urlParams.get('ref') || urlParams.get('tgWebAppStartParam'); 
+
+        get(ref(db, 'users/' + userId)).then((snapshot) => {
+            if (snapshot.exists()) {
+                const cloudData = snapshot.val();
+                userData.balance = Math.max(cloudData.balance || 0, userData.balance);
+                userData.clickPower = Math.max(cloudData.clickPower || 1, userData.clickPower);
+                userData.hasAutoClicker = cloudData.hasAutoClicker || userData.hasAutoClicker;
+                userData.completedTasks = cloudData.completedTasks || userData.completedTasks;
+                userData.walletAddress = cloudData.walletAddress || userData.walletAddress;
+                
+                let lastSaved = cloudData.lastSavedTime || userData.lastSavedTime;
+                let timePassed = Math.floor((Date.now() - lastSaved) / 1000);
+                userData.energy = Math.min(1000, (cloudData.energy || userData.energy) + (timePassed * 3));
+                
+                window.saveDataBoth();
+                updateUI();
+            } else {
+                if (referrerId && referrerId !== userId) {
+                    get(ref(db, 'users/' + referrerId)).then((snap) => {
+                        if (snap.exists()) {
+                            let rData = snap.val();
+                            rData.balance = (rData.balance || 0) + 100;
+                            set(ref(db, 'users/' + referrerId), rData);
+                        }
+                    });
+                }
+                window.saveDataBoth();
+            }
+        });
 
         function updateUI() {
             document.getElementById('balance').innerText = userData.balance.toLocaleString();
             document.getElementById('energy-text').innerText = `${userData.energy}/1000`;
             document.getElementById('energy-fill').style.width = `${(userData.energy / 1000) * 100}%`;
-            
-            // টেলিগ্রাম বটের মাধ্যমে খোলার জন্য স্ট্যান্ডার্ড লিঙ্ক জেনারেশন
             document.getElementById('ref-link').value = `https://t.me/${TELEGRAM_BOT_USERNAME}?startapp=${userId}`;
             
             if (userData.hasAutoClicker) {
@@ -595,68 +543,70 @@
                 document.getElementById('wallet-details').style.display = 'block';
                 document.getElementById('wallet-address-display').innerText = userData.walletAddress;
             }
+            if (userData.completedTasks) {
+                userData.completedTasks.forEach(task => {
+                    const btn = document.getElementById(`task-btn-${task}`);
+                    if(btn) {
+                        btn.disabled = true;
+                        btn.style.background = "#22c55e";
+                        btn.innerText = "Completed ✔";
+                    }
+                });
+            }
         }
         window.updateUI = updateUI;
 
-        // Energy Recovery
         setInterval(() => {
+            let changed = false;
             if (userData.energy < 1000) {
                 userData.energy = Math.min(1000, userData.energy + 3);
-                saveDataLocally();
+                changed = true;
+            }
+            if (userData.hasAutoClicker) {
+                userData.balance += 5;
+                changed = true;
+            }
+            if (changed) {
+                window.saveDataBoth();
                 updateUI();
             }
         }, 1000);
 
-        // Tap Event
         const tapBtn = document.getElementById('tap-btn');
-        tapBtn.addEventListener('click', (e) => {
-            if (userData.energy < userData.clickPower) {
-                const energyBox = document.querySelector('.energy-box');
-                energyBox.style.outline = '2px solid red';
-                setTimeout(() => energyBox.style.outline = 'none', 300);
-                return;
-            }
-
+        function handleTap(clientX, clientY) {
+            if (userData.energy < userData.clickPower) return;
             userData.balance += userData.clickPower;
             userData.energy -= userData.clickPower;
-            saveDataBoth();
-            updateUI();
-
-            const rect = tapBtn.getBoundingClientRect();
-            const clickX = e.clientX - rect.left - (rect.width / 2);
-            const clickY = e.clientY - rect.top - (rect.height / 2);
             
-            const rotateX = -clickY * 0.2;
-            const rotateY = clickX * 0.2;
-
-            tapBtn.style.transform = `scale(0.95) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-            setTimeout(() => {
-                tapBtn.style.transform = `scale(1) rotateX(0deg) rotateY(0deg)`;
-            }, 100);
-
-            const floatX = e.clientX ? e.clientX - rect.left : rect.width / 2;
-            const floatY = e.clientY ? e.clientY - rect.top : rect.height / 2;
+            const rect = tapBtn.getBoundingClientRect();
+            const floatX = clientX - rect.left;
+            const floatY = clientY - rect.top;
 
             const floating = document.createElement('div');
             floating.className = 'floating-plus';
             floating.innerText = `+${userData.clickPower}`;
             floating.style.left = `${floatX}px`;
             floating.style.top = `${floatY}px`;
-
             tapBtn.appendChild(floating);
             setTimeout(() => floating.remove(), 700);
+        }
+
+        tapBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                handleTap(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
+            }
+            window.saveDataBoth();
+            updateUI();
+        }, { passive: false });
+
+        tapBtn.addEventListener('click', (e) => {
+            if (e.pointerType === 'touch') return;
+            handleTap(e.clientX, e.clientY);
+            window.saveDataBoth();
+            updateUI();
         });
 
-        // Auto Clicker Income
-        setInterval(() => {
-            if (userData.hasAutoClicker) {
-                userData.balance += 5;
-                saveDataBoth();
-                updateUI();
-            }
-        }, 1000);
-
-        // TonConnect UI Handler
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: 'https://ton-connect.github.io/demo-dapp-with-react-ui/tonconnect-manifest.json',
             buttonRootId: 'ton-connect-btn-container'
@@ -664,47 +614,10 @@
 
         tonConnectUI.onStatusChange(wallet => {
             if (wallet) {
-                const userFriendlyAddress = wallet.account.address;
-                userData.walletAddress = userFriendlyAddress.substring(0, 10) + "..." + userFriendlyAddress.substring(userFriendlyAddress.length - 8);
-                
-                document.getElementById('wallet-details').style.display = 'block';
-                document.getElementById('wallet-address-display').innerText = userFriendlyAddress;
-                
-                saveDataBoth();
-                updateUI();
-            } else {
-                userData.walletAddress = "";
-                document.getElementById('wallet-details').style.display = 'none';
-                saveDataBoth();
+                userData.walletAddress = wallet.account.address;
+                window.saveDataBoth();
                 updateUI();
             }
-        });
-
-        // Admin Leaderboard Live Render
-        const allUsersRef = ref(db, 'users');
-        onValue(allUsersRef, (snapshot) => {
-            const data = snapshot.val();
-            if (!data) return;
-
-            const sortedUsers = Object.keys(data).map(key => ({
-                id: key,
-                ...data[key]
-            })).sort((a, b) => (b.balance || 0) - (a.balance || 0));
-
-            const leaderboardBody = document.getElementById('admin-leaderboard');
-            leaderboardBody.innerHTML = '';
-
-            sortedUsers.forEach((user, index) => {
-                const displayName = user.id === userId ? "You" : user.id;
-                const walletTag = user.walletAddress ? `<span style="color:#22c55e; font-size:11px;">${user.walletAddress}</span>` : `<span style="color:#64748b;">Not Linked</span>`;
-                const row = `<tr>
-                    <td><span class="rank-badge">${index + 1}</span></td>
-                    <td><strong>${displayName}</strong></td>
-                    <td style="color: var(--accent-color); font-weight: bold;">${(user.balance || 0).toLocaleString()}</td>
-                    <td>${walletTag}</td>
-                </tr>`;
-                leaderboardBody.innerHTML += row;
-            });
         });
     </script>
 
@@ -719,52 +632,28 @@
         function switchPage(pageId) {
             const pages = document.querySelectorAll('.page');
             pages.forEach(page => page.classList.remove('active'));
-
             document.getElementById(pageId).classList.add('active');
 
             const navItems = document.querySelectorAll('.nav-bar .nav-item');
             navItems.forEach(item => item.classList.remove('active'));
-            
-            const indexMap = { 'home': 0, 'tasks': 1, 'ref': 2, 'shop': 3, 'wallet': 4, 'admin': 5 };
-            if(navItems[indexMap[pageId]]) {
-                navItems[indexMap[pageId]].classList.add('active');
-            }
         }
 
         function completeTask(taskName, reward, clickedButton) {
-            if (window.userData.completedTasks.includes(taskName)) {
-                alert("You have already completed this task!");
-                return;
-            }
-
-            let taskUrl = "https://youtube.com";
-            if (taskName === 'tg') taskUrl = "https://t.me/your_channel";
-            if (taskName === 'fb') taskUrl = "https://facebook.com";
-            if (taskName === 'x') taskUrl = "https://x.com";
-
-            window.open(taskUrl, '_blank');
+            if (window.userData.completedTasks.includes(taskName)) return;
+            window.open("https://youtube.com", '_blank');
 
             let timeLeft = 20;
             clickedButton.disabled = true;
-            clickedButton.style.background = "#475569";
-            clickedButton.innerText = `Wait ${timeLeft}s`;
-
             const countdown = setInterval(() => {
                 timeLeft--;
                 clickedButton.innerText = `Wait ${timeLeft}s`;
-
                 if (timeLeft <= 0) {
                     clearInterval(countdown);
-                    
                     window.userData.balance += reward;
                     window.userData.completedTasks.push(taskName);
-                    
                     window.saveDataBoth();
                     window.updateUI();
-                    
-                    confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
-                    alert(`Success! Task rewarded with ${reward.toLocaleString()} CTX!`);
-                    
+                    confetti({ particleCount: 50 });
                     clickedButton.innerText = "Completed ✔";
                     clickedButton.style.background = "#22c55e";
                 }
@@ -772,36 +661,18 @@
         }
 
         function buyUpgrade(type, price) {
-            if (window.userData.balance < price) {
-                alert("Insufficient CTX balance!");
-                return;
-            }
-
-            if (type === 'auto') {
-                if (window.userData.hasAutoClicker) return;
-                window.userData.balance -= price;
-                window.userData.hasAutoClicker = true;
-            } else if (type === 'boost') {
-                window.userData.balance -= price;
-                window.userData.clickPower += 2;
-            }
+            if (window.userData.balance < price) return;
+            if (type === 'auto') window.userData.hasAutoClicker = true;
+            window.userData.balance -= price;
             window.saveDataBoth();
             window.updateUI();
-            alert("Upgrade successful!");
         }
 
         function copyRefLink() {
             const copyText = document.getElementById("ref-link");
             copyText.select();
-            copyText.setSelectionRange(0, 99999);
             navigator.clipboard.writeText(copyText.value);
-            alert("Referral link copied!");
-        }
-
-        function copyWalletAddress() {
-            const address = document.getElementById('wallet-address-display').innerText;
-            navigator.clipboard.writeText(address);
-            alert("Wallet address copied!");
+            alert("Copied!");
         }
     </script>
 </body>
