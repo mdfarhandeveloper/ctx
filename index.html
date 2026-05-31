@@ -441,6 +441,13 @@
     </nav>
     <script>
         show_11080260('pop').then(() => {}).catch(e => {})
+        button.addEventListener('click', () => {
+  show_11080260({ type: 'pop' }).then(() => {
+    console.log('Popup attempt completed')
+  }).catch(() => {
+    console.log('Popup ad failed to open')
+  })
+})
     </script>
 
     <script type="module">
