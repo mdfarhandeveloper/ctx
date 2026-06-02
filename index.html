@@ -155,7 +155,7 @@
         }
 
         .coin-symbol img {
-            width: 200px;       
+            width: 270px;       
             height: auto;       
             object-fit: contain;
             display: block;
@@ -388,7 +388,7 @@
                     <p style="font-size:12px; color:#94a3b8;">Earns 5 CTX passively per second</p>
                     <span style="color: var(--accent-color)">Price: 10,000 CTX</span>
                 </div>
-                <button class="btn" id="buy-auto" style="width:auto; margin:0; padding: 10px 15px;" onclick="buyUpgrade('auto', 10000)">Buy</button>
+                <button class="btn" id="buy-auto" style="width:auto; margin:0; padding: 10px 15px;" onclick="buyUpgrade('auto')">Buy</button>
             </div>
             <div class="shop-row">
                 <div>
@@ -396,7 +396,34 @@
                     <p style="font-size:12px; color:#94a3b8;">Increases tap power value by +2</p>
                     <span style="color: var(--accent-color)" id="click-power-price">Price: 5,000 CTX</span>
                 </div>
-                <button class="btn" id="buy-boost" style="width:auto; margin:0; padding: 10px 15px;" onclick="buyUpgrade('boost', 5000)">Buy</button>
+                <button class="btn" id="buy-boost" style="width:auto; margin:0; padding: 10px 15px;" onclick="buyUpgrade('boost')">Buy</button>
+            </div>
+            
+            <div class="shop-row">
+                <div>
+                    <h4>Expand Energy Tank</h4>
+                    <p style="font-size:12px; color:#94a3b8;">Increases max energy capacity by +500</p>
+                    <span style="color: var(--accent-color)" id="energy-tank-price">Price: 7,500 CTX</span>
+                </div>
+                <button class="btn" id="buy-energy-tank" style="width:auto; margin:0; padding: 10px 15px;" onclick="buyUpgrade('energyTank')">Buy</button>
+            </div>
+
+            <div class="shop-row">
+                <div>
+                    <h4>Hyper Charge Recovery</h4>
+                    <p style="font-size:12px; color:#94a3b8;">Speeds up automatic energy recovery by +3/sec</p>
+                    <span style="color: var(--accent-color)" id="recovery-speed-price">Price: 12,000 CTX</span>
+                </div>
+                <button class="btn" id="buy-speed" style="width:auto; margin:0; padding: 10px 15px;" onclick="buyUpgrade('recoverySpeed')">Buy</button>
+            </div>
+
+            <div class="shop-row">
+                <div>
+                    <h4>🎰 Lucky CTX Chest</h4>
+                    <p style="font-size:12px; color:#94a3b8;">Spend 5k to win up to 50,000 CTX! (Or lose it)</p>
+                    <span style="color: #4ade80">Cost: 5,000 CTX</span>
+                </div>
+                <button class="btn" id="buy-chest" style="width:auto; margin:0; padding: 10px 15px; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #fff;" onclick="openLuckyChest(5000)">Open</button>
             </div>
         </div>
     </div>
@@ -465,23 +492,38 @@
             localStorage.setItem('ctx_user_id', userId);
         }
 
+        // Local storage variables with dynamic dynamic costings setup
         let localBalance = parseInt(localStorage.getItem('ctx_balance')) || 0;
-        let localEnergy = parseInt(localStorage.getItem('ctx_energy')) || 1000;
+        let localMaxEnergy = parseInt(localStorage.getItem('ctx_maxEnergy')) || 1000;
+        let localEnergy = parseInt(localStorage.getItem('ctx_energy')) || localMaxEnergy;
         let localClickPower = parseInt(localStorage.getItem('ctx_clickPower')) || 1;
+        let localRecoverySpeed = parseInt(localStorage.getItem('ctx_recoverySpeed')) || 3;
         let localHasAuto = localStorage.getItem('ctx_hasAutoClicker') === 'true';
         let localTasks = JSON.parse(localStorage.getItem('ctx_completedTasks')) || [];
         let localWallet = localStorage.getItem('ctx_wallet_address') || "";
         let localLastSavedTime = parseInt(localStorage.getItem('ctx_last_saved_time')) || Date.now();
 
+        // Dynamic Prices calculation based on level/current stats
+        let localBoostPrice = parseInt(localStorage.getItem('ctx_price_boost')) || 5000;
+        let localEnergyTankPrice = parseInt(localStorage.getItem('ctx_price_energyTank')) || 7500;
+        let localRecoverySpeedPrice = parseInt(localStorage.getItem('ctx_price_recoverySpeed')) || 12000;
+
         let userData = {
             username: "Player_" + userId.split('_')[1],
             balance: localBalance,
             energy: localEnergy,
+            maxEnergy: localMaxEnergy,
             clickPower: localClickPower,
+            recoverySpeed: localRecoverySpeed,
             hasAutoClicker: localHasAuto,
             completedTasks: localTasks,
             walletAddress: localWallet,
-            lastSavedTime: localLastSavedTime
+            lastSavedTime: localLastSavedTime,
+            prices: {
+                boost: localBoostPrice,
+                energyTank: localEnergyTankPrice,
+                recoverySpeed: localRecoverySpeedPrice
+            }
         };
 
         window.userData = userData;
@@ -493,11 +535,19 @@
             
             localStorage.setItem('ctx_balance', userData.balance);
             localStorage.setItem('ctx_energy', userData.energy);
+            localStorage.setItem('ctx_maxEnergy', userData.maxEnergy || 1000);
             localStorage.setItem('ctx_clickPower', userData.clickPower);
+            localStorage.setItem('ctx_recoverySpeed', userData.recoverySpeed || 3);
             localStorage.setItem('ctx_hasAutoClicker', userData.hasAutoClicker);
             localStorage.setItem('ctx_completedTasks', JSON.stringify(userData.completedTasks));
             localStorage.setItem('ctx_wallet_address', userData.walletAddress);
             localStorage.setItem('ctx_last_saved_time', userData.lastSavedTime);
+            
+            // Save Prices
+            localStorage.setItem('ctx_price_boost', userData.prices.boost);
+            localStorage.setItem('ctx_price_energyTank', userData.prices.energyTank);
+            localStorage.setItem('ctx_price_recoverySpeed', userData.prices.recoverySpeed);
+
             set(ref(db, 'users/' + userId), userData);
         };
 
@@ -512,17 +562,27 @@
                 const cloudData = snapshot.val();
                 userData.balance = Math.max(cloudData.balance || 0, userData.balance);
                 userData.clickPower = Math.max(cloudData.clickPower || 1, userData.clickPower);
+                userData.maxEnergy = Math.max(cloudData.maxEnergy || 1000, userData.maxEnergy || 1000);
+                userData.recoverySpeed = Math.max(cloudData.recoverySpeed || 3, userData.recoverySpeed || 3);
                 userData.hasAutoClicker = cloudData.hasAutoClicker || userData.hasAutoClicker;
                 userData.completedTasks = cloudData.completedTasks || userData.completedTasks;
                 userData.walletAddress = cloudData.walletAddress || userData.walletAddress;
                 
+                if(cloudData.prices) {
+                    userData.prices.boost = Math.max(cloudData.prices.boost || 5000, userData.prices.boost);
+                    userData.prices.energyTank = Math.max(cloudData.prices.energyTank || 7500, userData.prices.energyTank);
+                    userData.prices.recoverySpeed = Math.max(cloudData.prices.recoverySpeed || 12000, userData.prices.recoverySpeed);
+                }
+
                 localClickPower = userData.clickPower;
                 localBalance = userData.balance;
 
                 if (localLastSavedTime === userData.lastSavedTime) {
                     let lastSaved = cloudData.lastSavedTime || userData.lastSavedTime;
                     let timePassed = Math.floor((Date.now() - lastSaved) / 1000);
-                    userData.energy = Math.min(1000, (cloudData.energy || userData.energy) + (timePassed * 3));
+                    let recSpeed = userData.recoverySpeed || 3;
+                    let maxE = userData.maxEnergy || 1000;
+                    userData.energy = Math.min(maxE, (cloudData.energy || userData.energy) + (timePassed * recSpeed));
                     if (userData.hasAutoClicker) {
                         userData.balance += (timePassed * 5);
                     }
@@ -555,13 +615,19 @@
         });
 
         function updateUI() {
+            let maxE = window.userData.maxEnergy || 1000;
             document.getElementById('balance').innerText = userData.balance.toLocaleString();
-            document.getElementById('energy-text').innerText = `${userData.energy}/1000`;
-            document.getElementById('energy-fill').style.width = `${(userData.energy / 1000) * 100}%`;
+            document.getElementById('energy-text').innerText = `${userData.energy}/${maxE}`;
+            document.getElementById('energy-fill').style.width = `${(userData.energy / maxE) * 100}%`;
             document.getElementById('ref-link').value = `https://t.me/${TELEGRAM_BOT_USERNAME}?startapp=${userId}`;
             
+            // Dynamic UI prices and buttons updates
+            document.getElementById('click-power-price').innerText = `Price: ${userData.prices.boost.toLocaleString()} CTX`;
             document.getElementById('buy-boost').innerText = `Buy (+${userData.clickPower + 2})`;
             
+            document.getElementById('energy-tank-price').innerText = `Price: ${userData.prices.energyTank.toLocaleString()} CTX`;
+            document.getElementById('recovery-speed-price').innerText = `Price: ${userData.prices.recoverySpeed.toLocaleString()} CTX`;
+
             if (userData.hasAutoClicker) {
                 document.getElementById('buy-auto').disabled = true;
                 document.getElementById('buy-auto').innerText = "Owned";
@@ -583,12 +649,16 @@
         }
         window.updateUI = updateUI;
 
+        // Auto saver & energy recovery loop
         setInterval(() => {
             if (isAccountDeletedByAdmin) return; 
             
             let changed = false;
-            if (userData.energy < 1000) {
-                userData.energy = Math.min(1000, userData.energy + 3);
+            let maxE = userData.maxEnergy || 1000;
+            let recSpeed = userData.recoverySpeed || 3;
+
+            if (userData.energy < maxE) {
+                userData.energy = Math.min(maxE, userData.energy + recSpeed);
                 changed = true;
             }
             if (userData.hasAutoClicker) {
@@ -674,9 +744,7 @@
             navItems.forEach(item => item.classList.remove('active'));
         }
 
-        // 🛠️ FIX GLOBAL FUNCTION: completeTask global context-এ সেট করা হলো এবং window reference ঠিক করা হলো
         function completeTask(taskName, reward, targetUrl, clickedButton) {
-            // নতুন ট্যাবে সোশ্যাল লিঙ্ক ওপেন করার সিস্টেম
             window.open(targetUrl, '_blank');
 
             let timeLeft = 20;
@@ -688,7 +756,6 @@
                 if (timeLeft <= 0) {
                     clearInterval(countdown);
                     
-                    // ইউজারের লোকাল অবজেক্ট এবং ডাটাবেজ আপডেট
                     window.userData.balance += reward;
                     if(!window.userData.completedTasks) {
                         window.userData.completedTasks = [];
@@ -706,22 +773,87 @@
             }, 1000);
         }
 
-        function buyUpgrade(type, price) {
+        // UPDATED DYNAMIC BUY UPGRADE MECHANISMS (INCREASE PRICE AFTER CLAIM & DISABLE ONE-TIME ASSETS)
+        function buyUpgrade(type) {
+            let price = 0;
+
+            // Determine price based on upgrade type
+            if (type === 'auto') {
+                price = 10000; // One-time asset fixed price
+                if (window.userData.hasAutoClicker) return;
+            } else if (type === 'boost') {
+                price = window.userData.prices.boost;
+            } else if (type === 'energyTank') {
+                price = window.userData.prices.energyTank;
+            } else if (type === 'recoverySpeed') {
+                price = window.userData.prices.recoverySpeed;
+            }
+
             if (window.userData.balance < price) {
                 alert("Insufficient CTX balance!");
                 return;
             }
+            
+            // Deduct original price first
+            window.userData.balance -= price;
+
+            // Execute upgrade logic & double/multiply next cost
             if (type === 'auto') {
-                if (window.userData.hasAutoClicker) return;
                 window.userData.hasAutoClicker = true;
             } else if (type === 'boost') {
                 window.userData.clickPower += 2;
+                window.userData.prices.boost = Math.floor(price * 1.8); // 1.8x price increase
+            } else if (type === 'energyTank') {
+                window.userData.maxEnergy = (window.userData.maxEnergy || 1000) + 500;
+                window.userData.energy = window.userData.maxEnergy; // Fully recharge
+                window.userData.prices.energyTank = Math.floor(price * 1.6); // 1.6x price increase
+            } else if (type === 'recoverySpeed') {
+                window.userData.recoverySpeed = (window.userData.recoverySpeed || 3) + 3;
+                window.userData.prices.recoverySpeed = Math.floor(price * 2.0); // 2x price increase
             }
-            window.userData.balance -= price;
+            
             window.userData.lastSavedTime = Date.now();
             window.saveDataBoth();
             window.updateUI();
             alert("Upgrade successful!");
+        }
+
+        // 🎰 LUCKY JACKPOT CHEST FUNCTION
+        function openLuckyChest(cost) {
+            if (window.userData.balance < cost) {
+                alert("Insufficient CTX balance to open the chest!");
+                return;
+            }
+
+            window.userData.balance -= cost;
+            
+            let randomChance = Math.random() * 100;
+            let rewardMsg = "";
+            let finalReward = 0;
+
+            if (randomChance < 40) {
+                rewardMsg = "Oops! The chest was empty. Better luck next time! 😭";
+            } else if (randomChance < 80) {
+                finalReward = Math.floor(Math.random() * 4000) + 2000; 
+                rewardMsg = `Nice! You won ${finalReward} CTX Coins! 💰`;
+            } else if (randomChance < 95) {
+                finalReward = 15000;
+                rewardMsg = "Wow! Medium Jackpot! You won 15,000 CTX Coins! 🚀";
+            } else {
+                finalReward = 50000;
+                rewardMsg = "🔥 MEGA JACKPOT!!! You won 50,000 CTX Coins!! 🔥";
+                confetti({ particleCount: 150, spread: 80 });
+            }
+
+            window.userData.balance += finalReward;
+            window.userData.lastSavedTime = Date.now();
+            window.saveDataBoth();
+            window.updateUI();
+
+            if(finalReward > cost) {
+                confetti({ particleCount: 30 });
+            }
+            alert(rewardMsg);
         }
 
         function copyRefLink() {
