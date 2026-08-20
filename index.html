@@ -1,873 +1,498 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>CTX Coin - The Next-Gen Tap Game</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Morium! ✨</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;400;600;700&family=Hind+Siliguri:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root {
-            --bg-gradient: radial-gradient(circle at center, #1e1b4b 0%, #090514 100%);
-            --card-bg: rgba(30, 27, 75, 0.6);
-            --accent-color: #fbbf24;
-            --accent-glow: rgba(251, 191, 36, 0.4);
-            --text-color: #ffffff;
-            --neon-blue: #38bdf8;
-            --neon-green: #4ade80;
+            --primary: #ff4e50;
+            --secondary: #f9d423;
+            --accent: #e14efa;
+            --dark: #12002b;
+            --glass: rgba(255, 255, 255, 0.15);
+            --glass-border: rgba(255, 255, 255, 0.25);
         }
 
         * {
-            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'system-ui', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            user-select: none;
-            -webkit-user-select: none;
+            box-sizing: border-box;
         }
 
         body {
-            background: var(--bg-gradient);
-            color: var(--text-color);
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
+            font-family: 'Poppins', 'Hind Siliguri', sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            color: #fff;
+            min-height: 100vh;
+            overflow-x: hidden;
             position: relative;
         }
 
-        body::before {
-            content: '';
-            position: absolute;
-            width: 300px;
-            height: 300px;
-            background: rgba(99, 102, 241, 0.15);
-            filter: blur(100px);
-            top: 20%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-        }
-
-        .page {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            width: 100%;
-            height: calc(100vh - 75px);
-            padding: 20px;
-            overflow-y: auto;
-            backdrop-filter: blur(10px);
-        }
-
-        .page.active {
-            display: flex;
-        }
-
-        .nav-bar {
+        /* Floating particles / stars */
+        .stars {
             position: fixed;
-            bottom: 0;
+            top: 0;
+            left: 0;
             width: 100%;
-            height: 75px;
-            background: rgba(15, 12, 30, 0.9);
-            backdrop-filter: blur(20px);
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-            z-index: 1000;
-        }
-
-        .nav-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            color: #64748b;
-            font-size: 11px;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.2s ease;
-        }
-
-        .nav-item.active {
-            color: var(--accent-color);
-            transform: translateY(-2px);
-        }
-
-        .nav-item svg {
-            width: 22px;
-            height: 22px;
-            margin-bottom: 5px;
-            fill: currentColor;
-            transition: fill 0.2s ease;
-        }
-
-        .score-container {
-            text-align: center;
-            margin-top: 15px;
-        }
-
-        .coin-balance {
-            font-size: 46px;
-            font-weight: 800;
-            color: var(--accent-color);
-            text-shadow: 0 0 20px var(--accent-glow);
-            letter-spacing: -1px;
-        }
-
-        .coin-name-tag {
-            font-size: 14px;
-            color: var(--neon-blue);
-            font-weight: bold;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        .coin-wrapper {
-            margin: auto 0;
-            perspective: 1000px;
-            touch-action: none;
-        }
-
-        .main-coin {
-            width: 210px;
-            height: 210px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            transform-style: preserve-3d;
-            transition: transform 0.1s ease;
-        }
-
-        .coin-inner-design {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            border: 4px dashed rgba(255, 255, 255, 0.3);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: rgba(0,0,0,0.15);
-            pointer-events: none;
-        }
-
-        .coin-symbol img {
-            width: 270px;       
-            height: auto;       
-            object-fit: contain;
-            display: block;
-            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.7));
-            pointer-events: none;
-        }
-
-        .energy-box {
-            width: 100%;
-            max-width: 380px;
-            margin-bottom: 20px;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            transition: outline 0.3s ease;
-        }
-
-        .energy-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .energy-bar-bg {
-            width: 100%;
-            height: 12px;
-            background: #1e1b4b;
-            border-radius: 6px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .energy-bar-fill {
             height: 100%;
-            width: 100%;
-            background: linear-gradient(90deg, #f59e0b, #eab308);
-            box-shadow: 0 0 10px rgba(234, 179, 8, 0.5);
-            transition: width 0.1s linear;
-        }
-
-        .floating-plus {
-            position: absolute;
-            color: #fff;
-            font-size: 32px;
-            font-weight: 900;
             pointer-events: none;
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
-            animation: bounceFloatUp 0.7s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
-            z-index: 999;
+            z-index: 0;
         }
 
-        @keyframes bounceFloatUp {
-            0% { transform: translateY(0) scale(0.6); opacity: 0; }
-            20% { opacity: 1; }
-            100% { transform: translateY(-130px) scale(1.3); opacity: 0; }
+        /* Container */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+            position: relative;
+            z-index: 10;
         }
 
-        .card {
-            background: var(--card-bg);
-            border-radius: 16px;
-            padding: 18px;
-            width: 100%;
-            max-width: 400px;
-            margin-bottom: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
+        /* Header Section */
+        header {
+            text-align: center;
+            padding: 50px 20px 30px;
+            animation: fadeInDown 1.2s ease-out;
         }
 
-        .btn {
-            background: linear-gradient(135deg, var(--accent-color) 0%, #d97706 100%);
-            color: #000;
-            border: none;
-            padding: 14px;
-            border-radius: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            width: 100%;
-            margin-top: 10px;
-            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
-            transition: all 0.2s ease;
+        .title-sub {
+            font-size: 1.2rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--secondary);
+            font-weight: 600;
+            margin-bottom: 10px;
+            text-shadow: 0 0 10px rgba(249, 212, 35, 0.5);
         }
 
-        .btn:active {
-            transform: scale(0.98);
+        .title-main {
+            font-family: 'Dancing Script', cursive;
+            font-size: 4.5rem;
+            background: linear-gradient(45deg, #ff9a9e, #fecfef, #f9d423);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+            text-shadow: 0 10px 20px rgba(0,0,0,0.3);
         }
 
-        .btn:disabled {
-            background: #475569;
-            color: #94a3b8;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
-
-        .task-row, .shop-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-
-        .task-row:last-child, .shop-row:last-child {
-            border-bottom: none;
-        }
-
-        .wallet-display-box {
-            background: rgba(0,0,0,0.2);
-            padding: 12px;
-            border-radius: 10px;
-            margin-top: 15px;
-            font-size: 13px;
-            word-break: break-all;
-            border: 1px dashed rgba(255,255,255,0.2);
-        }
-
-        .copy-button {
-            margin-top: 8px;
-            padding: 6px 12px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 6px;
-            color: #fff;
-            font-size: 12px;
-            cursor: pointer;
+        .dob-badge {
             display: inline-block;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            padding: 8px 25px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: #fff;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         }
 
-        .copy-button:active {
+        /* Featured Profile Section */
+        .hero-section {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            margin: 40px 0;
+        }
+
+        .profile-card {
+            position: relative;
+            width: 320px;
+            height: 400px;
+            border-radius: 25px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            border: 2px solid var(--glass-border);
+            transition: transform 0.5s ease, box-shadow 0.5s ease;
+        }
+
+        .profile-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 30px 60px rgba(255, 78, 80, 0.4);
+        }
+
+        .profile-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .profile-overlay h3 {
+            font-size: 1.8rem;
+            color: #fff;
+            margin-bottom: 5px;
+        }
+
+        .profile-overlay p {
+            font-size: 0.9rem;
+            color: #ffd166;
+            font-style: italic;
+        }
+
+        /* Interactive Wishes Card */
+        .wishes-card {
+            flex: 1;
+            min-width: 300px;
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        .wishes-card h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+            color: var(--secondary);
+            border-bottom: 2px solid rgba(255,255,255,0.1);
+            padding-bottom: 10px;
+        }
+
+        .wishes-card p {
+            font-size: 1.15rem;
+            line-height: 1.8;
+            color: #e2e8f0;
+            margin-bottom: 20px;
+        }
+
+        .btn-celebrate {
+            background: linear-gradient(45deg, #ff4e50, #f9d423);
+            border: none;
+            padding: 14px 32px;
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(255, 78, 80, 0.4);
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .btn-celebrate:hover {
+            transform: scale(1.08);
+            box-shadow: 0 15px 35px rgba(255, 78, 80, 0.6);
+        }
+
+        /* Gallery Section */
+        .section-title {
+            text-align: center;
+            font-size: 2.2rem;
+            margin: 60px 0 30px;
+            color: #fff;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            margin: 10px auto 0;
+            border-radius: 2px;
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .gallery-item {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            height: 350px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            transition: all 0.4s ease;
+            cursor: pointer;
+        }
+
+        .gallery-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+        .gallery-item:hover img {
+            transform: scale(1.15);
+        }
+
+        .gallery-caption {
+            position: absolute;
+            inset: 0;
+            background: rgba(18, 0, 43, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            padding: 20px;
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .gallery-item:hover .gallery-caption {
+            opacity: 1;
+        }
+
+        /* Birthday Wishes Messages Grid */
+        .messages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .message-card {
+            background: var(--glass);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
+            padding: 25px;
+            border-radius: 20px;
+            position: relative;
+            transition: transform 0.3s ease;
+        }
+
+        .message-card:hover {
+            transform: translateY(-5px);
             background: rgba(255, 255, 255, 0.2);
+        }
+
+        .message-card h4 {
+            color: var(--secondary);
+            margin-bottom: 10px;
+            font-size: 1.2rem;
+        }
+
+        .message-card p {
+            font-size: 0.98rem;
+            line-height: 1.6;
+            color: #f1f5f9;
+        }
+
+        /* Special Wish Box */
+        .special-box {
+            background: linear-gradient(135deg, rgba(255, 78, 80, 0.2), rgba(249, 212, 35, 0.2));
+            backdrop-filter: blur(20px);
+            border: 2px dashed var(--secondary);
+            border-radius: 25px;
+            padding: 40px;
+            text-align: center;
+            margin: 60px 0 40px;
+        }
+
+        .special-box h3 {
+            font-size: 2rem;
+            color: var(--secondary);
+            margin-bottom: 15px;
+        }
+
+        .special-box p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            line-height: 1.8;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            border-top: 1px solid var(--glass-border);
+            color: #a0aec0;
+            font-size: 0.95rem;
+            margin-top: 40px;
+        }
+
+        footer span {
+            color: var(--primary);
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .title-main {
+                font-size: 3.2rem;
+            }
+            .wishes-card {
+                padding: 25px;
+            }
+            .profile-card {
+                width: 100%;
+                height: 380px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <div id="home" class="page active">
-        <div class="score-container">
-            <div id="balance" class="coin-balance">0</div>
-            <div class="coin-name-tag">CTX COINS</div>
-        </div>
-        
-        <div class="coin-wrapper">
-            <div class="main-coin" id="tap-btn">
-                <div class="coin-inner-design">
-                    <span class="coin-symbol"><img src="https://i.postimg.cc/9fm67xXX/ctxcoin-logo.png" alt="CTX Coin Logo"></span>
+    <div class="stars" id="stars"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="title-sub">🎉 Happy Birthday 🎉</div>
+            <h1 class="title-main">Morium</h1>
+            <div class="dob-badge">✨ 20 AUGUST 2026 ✨</div>
+        </header>
+
+        <!-- Main Hero Section -->
+        <div class="hero-section">
+            <div class="profile-card">
+                <img src="assets/1.jpg" alt="Morium">
+                <div class="profile-overlay">
+                    <h3>Morium</h3>
+                    <p>Queen of the Day 👑</p>
                 </div>
+            </div>
+
+            <div class="wishes-card">
+                <h2>Happy Birthday 🎈</h2>
+                <p>
+                    May your year ahead be filled with endless joy, success, good health, and incredible memories. Always keep shining bright like the star you are! ✨
+                </p>
+                <button class="btn-celebrate" onclick="triggerConfetti()">Celebrate Birthday 🎂🎊</button>
             </div>
         </div>
 
-        <div class="energy-box">
-            <div class="energy-header">
-                <span>⚡ Energy Limit</span>
-                <span id="energy-text" style="font-weight: bold;">1000/1000</span>
+        <!-- Special Quote Box -->
+        <div class="special-box">
+            <h3>🌟 A Special Birthday Wish 🌟</h3>
+            <p>
+                "Life is a wonderfully beautiful canvas, and today is the day to add some new and magnificent colors to yours. Happy Birthday, Mariyam! May your days ahead be as beautiful as a fairytale."
+            </p>
+        </div>
+
+        <!-- Photo Gallery -->
+        <h2 class="section-title">Memorable Moments Gallery 📸</h2>
+        <div class="gallery-grid">
+            <div class="gallery-item">
+                <img src="assets/2.jpg" alt="Morium Moment 1">
+                <div class="gallery-caption">A Beautiful Smile 💕</div>
             </div>
-            <div class="energy-bar-bg">
-                <div class="energy-bar-fill" id="energy-fill"></div>
+            <div class="gallery-item">
+                <img src="assets/3.jpg" alt="Morium Moment 2">
+                <div class="gallery-caption">Elegance & Grace 🌸</div>
+            </div>
+            <div class="gallery-item">
+                <img src="assets/4.jpg" alt="Morium Moment 3">
+                <div class="gallery-caption">Flower & Joy 🌺</div>
+            </div>
+            <div class="gallery-item">
+                <img src="assets/5.jpg" alt="Morium Moment 4">
+                <div class="gallery-caption">Bright & Charming 💫</div>
+            </div>
+            <div class="gallery-item">
+                <img src="assets/6.jpg" alt="Morium Moment 5">
+                <div class="gallery-caption">Traditional Beauty 🌼</div>
+            </div>
+            <div class="gallery-item">
+                <img src="assets/7.jpg" alt="Morium Moment 6">
+                <div class="gallery-caption">Serene & Royal 👑</div>
             </div>
         </div>
+
+        <!-- Wishes Grid -->
+        <h2 class="section-title">Warm Birthday Wishes 💌</h2>
+        <div class="messages-grid">
+            <div class="message-card">
+                <h4>🎉 আনন্দের বার্তা</h4>
+                <p>তোমার জীবনের প্রতিটি দিন যেন আজকের মতো উৎসবমুখর ও আনন্দময় হয়। সর্বদা সুস্থ ও সুখী থাকো!</p>
+            </div>
+            <div class="message-card">
+                <h4>✨ স্বপ্নের উড়ান</h4>
+                <p>তোমার সব স্বপ্ন সত্যি হোক, জীবনের প্রতিটি পদক্ষেপে সাফল্য তোমার সঙ্গী হোক। শুভ জন্মদিন!</p>
+            </div>
+            <div class="message-card">
+                <h4>💖 চিরন্তন হাসি</h4>
+                <p>তোমার মুখের এই মিষ্টি হাসিটা যেন কখনো ম্লান না হয়। সারাজীবন এভাবেই সবাইকে হাসিয়ে রেখো!</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>Crafted with ❤️ for <strong>Morium's Special Birthday</strong> | 20th August 2026</p>
+        </footer>
     </div>
-
-    <div id="tasks" class="page">
-        <h2>Earn Rewards</h2>
-        <p style="color: #94a3b8; margin-bottom: 20px; text-align: center;">Complete fast tasks to instantly gain lots of coins</p>
-        
-        <div class="card">
-            <div class="task-row">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSIehT5z77uyqb3t9WAKwmrue2u6639pZ92MQ&s" alt="" style="width: 24px; height: 24px;">
-                    <div>
-                        <h4>Subscribe YouTube</h4>
-                        <span style="color: var(--accent-color)">+1,000 CTX</span>
-                    </div>
-                </div>
-                <button class="btn" id="task-btn-yt" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('yt', 1000, 'https://www.youtube.com/@ctxcoin', this)">Start</button>
-            </div>
-            <div class="task-row">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <img src="https://cdn-icons-png.flaticon.com/512/2111/2111646.png" alt="" style="width: 24px; height: 24px;">
-                    <div>
-                        <h4>Join Telegram</h4>
-                        <span style="color: var(--accent-color)">+1,000 CTX</span>
-                    </div>
-                </div>
-                <button class="btn" id="task-btn-tg" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('tg', 1000, 'https://t.me/ctxcoin_official', this)">Start</button>
-            </div>
-            <div class="task-row">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/e/ee/Logo_de_Facebook.png" alt="" style="width: 24px; height: 24px;">
-                    <div>
-                        <h4>Follow Facebook</h4>
-                        <span style="color: var(--accent-color)">+1,000 CTX</span>
-                    </div>
-                </div>
-                <button class="btn" id="task-btn-fb" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('fb', 1000, 'https://www.facebook.com/profile.php?id=61590323648542', this)">Start</button>
-            </div>
-            <div class="task-row">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/X_logo.jpg/960px-X_logo.jpg" alt="" style="width: 24px; height: 24px;">
-                    <div>
-                        <h4>Follow Us on X.com</h4>
-                        <span style="color: var(--accent-color)">+1,500 CTX</span>
-                    </div>
-                </div>
-                <button class="btn" id="task-btn-x" style="width:auto; margin:0; padding: 10px 15px;" onclick="completeTask('x', 1500, 'https://x.com/md_ali30660', this)">Start</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="ref" class="page">
-        <h2>Invite System</h2>
-        <p style="color: #94a3b8; margin-bottom: 20px; text-align: center;">Invite users to earn passive referral shares</p>
-        
-        <div class="card" style="text-align: center;">
-            <p style="margin-bottom: 10px;">Get 100 CTX coin per registered link user</p>
-            <input type="text" id="ref-link" readonly style="width: 100%; padding: 12px; margin: 10px 0; background:#0c0a24; border:1px solid rgba(255,255,255,0.15); color:#fff; text-align:center; border-radius:8px;">
-            <button class="btn" onclick="copyRefLink()">Copy Referral Link</button>
-        </div>
-    </div>
-
-    <div id="shop" class="page">
-        <h2>Boost Shop</h2>
-        <p style="color: #94a3b8; margin-bottom: 20px; text-align: center;">Spend CTX coins to upgrade clicking assets</p>
-        
-        <div class="card">
-            <div class="shop-row">
-                <div>
-                    <h4>Passive Auto Clicker</h4>
-                    <p style="font-size:12px; color:#94a3b8;">Earns 5 CTX passively per second</p>
-                    <span style="color: var(--accent-color)">Price: 10,000 CTX</span>
-                </div>
-                <button class="btn" id="buy-auto" style="width:auto; margin:0; padding: 10px 15px;" onclick="buyUpgrade('auto')">Buy</button>
-            </div>
-            <div class="shop-row">
-                <div>
-                    <h4>Click Power Multiplier</h4>
-                    <p style="font-size:12px; color:#94a3b8;">Increases tap power value by +2</p>
-                    <span style="color: var(--accent-color)" id="click-power-price">Price: 5,000 CTX</span>
-                </div>
-                <button class="btn" id="buy-boost" style="width:auto; margin:0; padding: 10px 15px;" onclick="buyUpgrade('boost')">Buy</button>
-            </div>
-            
-            <div class="shop-row">
-                <div>
-                    <h4>Expand Energy Tank</h4>
-                    <p style="font-size:12px; color:#94a3b8;">Increases max energy capacity by +500</p>
-                    <span style="color: var(--accent-color)" id="energy-tank-price">Price: 7,500 CTX</span>
-                </div>
-                <button class="btn" id="buy-energy-tank" style="width:auto; margin:0; padding: 10px 15px;" onclick="buyUpgrade('energyTank')">Buy</button>
-            </div>
-
-            <div class="shop-row">
-                <div>
-                    <h4>Hyper Charge Recovery</h4>
-                    <p style="font-size:12px; color:#94a3b8;">Speeds up automatic energy recovery by +3/sec</p>
-                    <span style="color: var(--accent-color)" id="recovery-speed-price">Price: 12,000 CTX</span>
-                </div>
-                <button class="btn" id="buy-speed" style="width:auto; margin:0; padding: 10px 15px;" onclick="buyUpgrade('recoverySpeed')">Buy</button>
-            </div>
-
-            <div class="shop-row">
-                <div>
-                    <h4>🎰 Lucky CTX Chest</h4>
-                    <p style="font-size:12px; color:#94a3b8;">Spend 5k to win up to 50,000 CTX! (Or lose it)</p>
-                    <span style="color: #4ade80">Cost: 5,000 CTX</span>
-                </div>
-                <button class="btn" id="buy-chest" style="width:auto; margin:0; padding: 10px 15px; background: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%); color: #fff;" onclick="openLuckyChest(5000)">Open</button>
-            </div>
-        </div>
-    </div>
-
-    
-    <div id="wallet" class="page">
-    <h2 style="color: var(--accent-color);">💰 Withdraw & Earnings</h2>
-    <p style="color: #4ade80; margin-bottom: 20px; text-align: center; font-weight: bold;">Connect your TON Wallet to convert CTX Coins into Real Money & Cash Out!</p>
-    
-    <div class="card" style="text-align: center;">
-        <div style="font-size: 55px; margin-bottom: 15px;" id="ton-connect-btn-container">💵</div>
-            
-            
-            <div id="wallet-details" style="display:none; margin-top: 15px;">
-                <p style="color:#22c55e;">✔ Active Blockchain Link Connected</p>
-                <div class="wallet-display-box" id="wallet-address-display">EQB...tX97wn2</div>
-                <button class="copy-button" onclick="copyWalletAddress()">Copy Wallet Address</button>
-            </div>
-        </div>
-    </div>
-
-    <nav class="nav-bar">
-        <a class="nav-item active" onclick="switchPage('home')">
-            <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Home
-        </a>
-        <a class="nav-item" onclick="switchPage('tasks')">
-            <svg viewBox="0 0 24 24"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/></svg>Tasks
-        </a>
-        <a class="nav-item" onclick="switchPage('ref')">
-            <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>Ref
-        </a>
-        <a class="nav-item" onclick="switchPage('shop')">
-            <svg viewBox="0 0 24 24"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/></svg>Shop
-        </a>
-        <a class="nav-item" onclick="switchPage('wallet')">
-            <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2-.9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>Wallet
-        </a>
-        <a class="nav-item" id="nav-admin-btn" style="display: none;" href="admin.html">
-            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>Admin
-        </a>
-    </nav>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, get, onValue } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyCKITS8pdaBi1-icFyZ4CgPxsJe60uszio",
-            authDomain: "ctx-9c92f.firebaseapp.com",
-            databaseURL: "https://ctx-9c92f-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "ctx-9c92f",
-            storageBucket: "ctx-9c92f.firebasestorage.app",
-            messagingSenderId: "853150844818",
-            appId: "1:853150844818:web:a4e4698526a6a61320a34b",
-            measurementId: "G-TEEZQZLPMD"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        const TELEGRAM_BOT_USERNAME = "ctxcoin_bot"; 
-
-        let userId = localStorage.getItem('ctx_user_id');
-        if (!userId) {
-            userId = 'user_' + Math.floor(Math.random() * 900000 + 100000);
-            localStorage.setItem('ctx_user_id', userId);
-        }
-
-        // Local storage variables with dynamic dynamic costings setup
-        let localBalance = parseInt(localStorage.getItem('ctx_balance')) || 0;
-        let localMaxEnergy = parseInt(localStorage.getItem('ctx_maxEnergy')) || 1000;
-        let localEnergy = parseInt(localStorage.getItem('ctx_energy')) || localMaxEnergy;
-        let localClickPower = parseInt(localStorage.getItem('ctx_clickPower')) || 1;
-        let localRecoverySpeed = parseInt(localStorage.getItem('ctx_recoverySpeed')) || 3;
-        let localHasAuto = localStorage.getItem('ctx_hasAutoClicker') === 'true';
-        let localTasks = JSON.parse(localStorage.getItem('ctx_completedTasks')) || [];
-        let localWallet = localStorage.getItem('ctx_wallet_address') || "";
-        let localLastSavedTime = parseInt(localStorage.getItem('ctx_last_saved_time')) || Date.now();
-
-        // Dynamic Prices calculation based on level/current stats
-        let localBoostPrice = parseInt(localStorage.getItem('ctx_price_boost')) || 5000;
-        let localEnergyTankPrice = parseInt(localStorage.getItem('ctx_price_energyTank')) || 7500;
-        let localRecoverySpeedPrice = parseInt(localStorage.getItem('ctx_price_recoverySpeed')) || 12000;
-
-        let userData = {
-            username: "Player_" + userId.split('_')[1],
-            balance: localBalance,
-            energy: localEnergy,
-            maxEnergy: localMaxEnergy,
-            clickPower: localClickPower,
-            recoverySpeed: localRecoverySpeed,
-            hasAutoClicker: localHasAuto,
-            completedTasks: localTasks,
-            walletAddress: localWallet,
-            lastSavedTime: localLastSavedTime,
-            prices: {
-                boost: localBoostPrice,
-                energyTank: localEnergyTankPrice,
-                recoverySpeed: localRecoverySpeedPrice
-            }
-        };
-
-        window.userData = userData;
-        
-        let isAccountDeletedByAdmin = false;
-
-        window.saveDataBoth = function() {
-            if (isAccountDeletedByAdmin) return;
-            
-            localStorage.setItem('ctx_balance', userData.balance);
-            localStorage.setItem('ctx_energy', userData.energy);
-            localStorage.setItem('ctx_maxEnergy', userData.maxEnergy || 1000);
-            localStorage.setItem('ctx_clickPower', userData.clickPower);
-            localStorage.setItem('ctx_recoverySpeed', userData.recoverySpeed || 3);
-            localStorage.setItem('ctx_hasAutoClicker', userData.hasAutoClicker);
-            localStorage.setItem('ctx_completedTasks', JSON.stringify(userData.completedTasks));
-            localStorage.setItem('ctx_wallet_address', userData.walletAddress);
-            localStorage.setItem('ctx_last_saved_time', userData.lastSavedTime);
-            
-            // Save Prices
-            localStorage.setItem('ctx_price_boost', userData.prices.boost);
-            localStorage.setItem('ctx_price_energyTank', userData.prices.energyTank);
-            localStorage.setItem('ctx_price_recoverySpeed', userData.prices.recoverySpeed);
-
-            set(ref(db, 'users/' + userId), userData);
-        };
-
-        updateUI();
-
-        const urlParams = new URLSearchParams(window.location.search);
-        let referrerId = urlParams.get('ref') || urlParams.get('tgWebAppStartParam'); 
-
-        const userDbRef = ref(db, 'users/' + userId);
-        onValue(userDbRef, (snapshot) => {
-            if (snapshot.exists()) {
-                const cloudData = snapshot.val();
-                userData.balance = Math.max(cloudData.balance || 0, userData.balance);
-                userData.clickPower = Math.max(cloudData.clickPower || 1, userData.clickPower);
-                userData.maxEnergy = Math.max(cloudData.maxEnergy || 1000, userData.maxEnergy || 1000);
-                userData.recoverySpeed = Math.max(cloudData.recoverySpeed || 3, userData.recoverySpeed || 3);
-                userData.hasAutoClicker = cloudData.hasAutoClicker || userData.hasAutoClicker;
-                userData.completedTasks = cloudData.completedTasks || userData.completedTasks;
-                userData.walletAddress = cloudData.walletAddress || userData.walletAddress;
-                
-                if(cloudData.prices) {
-                    userData.prices.boost = Math.max(cloudData.prices.boost || 5000, userData.prices.boost);
-                    userData.prices.energyTank = Math.max(cloudData.prices.energyTank || 7500, userData.prices.energyTank);
-                    userData.prices.recoverySpeed = Math.max(cloudData.prices.recoverySpeed || 12000, userData.prices.recoverySpeed);
-                }
-
-                localClickPower = userData.clickPower;
-                localBalance = userData.balance;
-
-                if (localLastSavedTime === userData.lastSavedTime) {
-                    let lastSaved = cloudData.lastSavedTime || userData.lastSavedTime;
-                    let timePassed = Math.floor((Date.now() - lastSaved) / 1000);
-                    let recSpeed = userData.recoverySpeed || 3;
-                    let maxE = userData.maxEnergy || 1000;
-                    userData.energy = Math.min(maxE, (cloudData.energy || userData.energy) + (timePassed * recSpeed));
-                    if (userData.hasAutoClicker) {
-                        userData.balance += (timePassed * 5);
-                    }
-                    localLastSavedTime = 0; 
-                }
-                
-                updateUI();
-            } else {
-                if (localBalance > 0 || localTasks.length > 0 || localHasAuto) {
-                    isAccountDeletedByAdmin = true; 
-                    localStorage.clear(); 
-                    alert("Your account has been deleted by Admin!");
-                    window.location.reload(); 
-                } else {
-                    if (referrerId && referrerId !== userId) {
-                        const refUserPath = ref(db, 'users/' + referrerId);
-                        get(refUserPath).then((snap) => {
-                            if (snap.exists()) {
-                                let rData = snap.val();
-                                rData.balance = (rData.balance || 0) + 100;
-                                set(refUserPath, rData);
-                            }
-                        }).catch(e => console.log("Referral track error"));
-                        
-                        referrerId = null;
-                    }
-                    window.saveDataBoth();
-                }
-            }
-        });
-
-        function updateUI() {
-            let maxE = window.userData.maxEnergy || 1000;
-            document.getElementById('balance').innerText = userData.balance.toLocaleString();
-            document.getElementById('energy-text').innerText = `${userData.energy}/${maxE}`;
-            document.getElementById('energy-fill').style.width = `${(userData.energy / maxE) * 100}%`;
-            document.getElementById('ref-link').value = `https://t.me/${TELEGRAM_BOT_USERNAME}?startapp=${userId}`;
-            
-            // Dynamic UI prices and buttons updates
-            document.getElementById('click-power-price').innerText = `Price: ${userData.prices.boost.toLocaleString()} CTX`;
-            document.getElementById('buy-boost').innerText = `Buy (+${userData.clickPower + 2})`;
-            
-            document.getElementById('energy-tank-price').innerText = `Price: ${userData.prices.energyTank.toLocaleString()} CTX`;
-            document.getElementById('recovery-speed-price').innerText = `Price: ${userData.prices.recoverySpeed.toLocaleString()} CTX`;
-
-            if (userData.hasAutoClicker) {
-                document.getElementById('buy-auto').disabled = true;
-                document.getElementById('buy-auto').innerText = "Owned";
-            }
-            if (userData.walletAddress) {
-                document.getElementById('wallet-details').style.display = 'block';
-                document.getElementById('wallet-address-display').innerText = userData.walletAddress;
-            }
-            if (userData.completedTasks) {
-                userData.completedTasks.forEach(task => {
-                    const btn = document.getElementById(`task-btn-${task}`);
-                    if(btn) {
-                        btn.disabled = true;
-                        btn.style.background = "#22c55e";
-                        btn.innerText = "Completed ✔";
-                    }
-                });
-            }
-        }
-        window.updateUI = updateUI;
-
-        // Auto saver & energy recovery loop
-        setInterval(() => {
-            if (isAccountDeletedByAdmin) return; 
-            
-            let changed = false;
-            let maxE = userData.maxEnergy || 1000;
-            let recSpeed = userData.recoverySpeed || 3;
-
-            if (userData.energy < maxE) {
-                userData.energy = Math.min(maxE, userData.energy + recSpeed);
-                changed = true;
-            }
-            if (userData.hasAutoClicker) {
-                userData.balance += 5;
-                localBalance = userData.balance; 
-                changed = true;
-            }
-            if (changed) {
-                userData.lastSavedTime = Date.now();
-                window.saveDataBoth();
-                updateUI();
-            }
-        }, 1000);
-
-        const tapBtn = document.getElementById('tap-btn');
-        function handleTap(clientX, clientY) {
-            if (isAccountDeletedByAdmin || userData.energy < userData.clickPower) return;
-            
-            userData.balance += userData.clickPower;
-            userData.energy -= userData.clickPower;
-            localBalance = userData.balance; 
-            
-            const rect = tapBtn.getBoundingClientRect();
-            const floatX = clientX - rect.left;
-            const floatY = clientY - rect.top;
-
-            const floating = document.createElement('div');
-            floating.className = 'floating-plus';
-            floating.innerText = `+${userData.clickPower}`;
-            floating.style.left = `${floatX}px`;
-            floating.style.top = `${floatY}px`;
-            tapBtn.appendChild(floating);
-            setTimeout(() => floating.remove(), 700);
-        }
-
-        tapBtn.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                handleTap(e.changedTouches[i].clientX, e.changedTouches[i].clientY);
-            }
-            userData.lastSavedTime = Date.now();
-            window.saveDataBoth();
-            updateUI();
-        }, { passive: false });
-
-        tapBtn.addEventListener('click', (e) => {
-            if (e.pointerType === 'touch') return;
-            handleTap(e.clientX, e.clientY);
-            userData.lastSavedTime = Date.now();
-            window.saveDataBoth();
-            updateUI();
-        });
-
-        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: 'https://ton-connect.github.io/demo-dapp-with-react-ui/tonconnect-manifest.json',
-            buttonRootId: 'ton-connect-btn-container'
-        });
-
-        tonConnectUI.onStatusChange(wallet => {
-            if (wallet) {
-                userData.walletAddress = wallet.account.address;
-                userData.lastSavedTime = Date.now();
-                window.saveDataBoth();
-                updateUI();
-            }
-        });
-    </script>
 
     <script>
-        window.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('mode') === 'admin') {
-                document.getElementById('nav-admin-btn').style.display = 'flex';
+        // Trigger Confetti on Load and Button Click
+        function triggerConfetti() {
+            var count = 200;
+            var defaults = {
+                origin: { y: 0.7 }
+            };
+
+            function fire(particleRatio, opts) {
+                confetti(Object.assign({}, defaults, opts, {
+                    particleCount: Math.floor(count * particleRatio)
+                }));
             }
+
+            fire(0.25, {
+                spread: 26,
+                startVelocity: 55,
+            });
+            fire(0.2, {
+                spread: 60,
+            });
+            fire(0.35, {
+                spread: 100,
+                decay: 0.91,
+                scalar: 0.8
+            });
+            fire(0.1, {
+                spread: 120,
+                startVelocity: 25,
+                decay: 0.92,
+                scalar: 1.2
+            });
+            fire(0.1, {
+                spread: 120,
+                startVelocity: 45,
+            });
+        }
+
+        // Auto trigger confetti when loaded
+        window.addEventListener('load', () => {
+            setTimeout(triggerConfetti, 500);
         });
-
-        function switchPage(pageId) {
-            const pages = document.querySelectorAll('.page');
-            pages.forEach(page => page.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-
-            const navItems = document.querySelectorAll('.nav-bar .nav-item');
-            navItems.forEach(item => item.classList.remove('active'));
-        }
-
-        function completeTask(taskName, reward, targetUrl, clickedButton) {
-            window.open(targetUrl, '_blank');
-
-            let timeLeft = 20;
-            clickedButton.disabled = true;
-            
-            const countdown = setInterval(() => {
-                timeLeft--;
-                clickedButton.innerText = `Wait ${timeLeft}s`;
-                if (timeLeft <= 0) {
-                    clearInterval(countdown);
-                    
-                    window.userData.balance += reward;
-                    if(!window.userData.completedTasks) {
-                        window.userData.completedTasks = [];
-                    }
-                    window.userData.completedTasks.push(taskName);
-                    window.userData.lastSavedTime = Date.now();
-                    
-                    window.saveDataBoth();
-                    window.updateUI();
-                    
-                    confetti({ particleCount: 50 });
-                    clickedButton.innerText = "Completed ✔";
-                    clickedButton.style.background = "#22c55e";
-                }
-            }, 1000);
-        }
-
-        // UPDATED DYNAMIC BUY UPGRADE MECHANISMS (INCREASE PRICE AFTER CLAIM & DISABLE ONE-TIME ASSETS)
-        function buyUpgrade(type) {
-            let price = 0;
-
-            // Determine price based on upgrade type
-            if (type === 'auto') {
-                price = 10000; // One-time asset fixed price
-                if (window.userData.hasAutoClicker) return;
-            } else if (type === 'boost') {
-                price = window.userData.prices.boost;
-            } else if (type === 'energyTank') {
-                price = window.userData.prices.energyTank;
-            } else if (type === 'recoverySpeed') {
-                price = window.userData.prices.recoverySpeed;
-            }
-
-            if (window.userData.balance < price) {
-                alert("Insufficient CTX balance!");
-                return;
-            }
-            
-            // Deduct original price first
-            window.userData.balance -= price;
-
-            // Execute upgrade logic & double/multiply next cost
-            if (type === 'auto') {
-                window.userData.hasAutoClicker = true;
-            } else if (type === 'boost') {
-                window.userData.clickPower += 2;
-                window.userData.prices.boost = Math.floor(price * 1.8); // 1.8x price increase
-            } else if (type === 'energyTank') {
-                window.userData.maxEnergy = (window.userData.maxEnergy || 1000) + 500;
-                window.userData.energy = window.userData.maxEnergy; // Fully recharge
-                window.userData.prices.energyTank = Math.floor(price * 1.6); // 1.6x price increase
-            } else if (type === 'recoverySpeed') {
-                window.userData.recoverySpeed = (window.userData.recoverySpeed || 3) + 3;
-                window.userData.prices.recoverySpeed = Math.floor(price * 2.0); // 2x price increase
-            }
-            
-            window.userData.lastSavedTime = Date.now();
-            window.saveDataBoth();
-            window.updateUI();
-            alert("Upgrade successful!");
-        }
-
-        // 🎰 LUCKY JACKPOT CHEST FUNCTION
-        function openLuckyChest(cost) {
-            if (window.userData.balance < cost) {
-                alert("Insufficient CTX balance to open the chest!");
-                return;
-            }
-
-            window.userData.balance -= cost;
-            
-            let randomChance = Math.random() * 100;
-            let rewardMsg = "";
-            let finalReward = 0;
-
-            if (randomChance < 40) {
-                rewardMsg = "Oops! The chest was empty. Better luck next time! 😭";
-            } else if (randomChance < 80) {
-                finalReward = Math.floor(Math.random() * 4000) + 2000; 
-                rewardMsg = `Nice! You won ${finalReward} CTX Coins! 💰`;
-            } else if (randomChance < 95) {
-                finalReward = 15000;
-                rewardMsg = "Wow! Medium Jackpot! You won 15,000 CTX Coins! 🚀";
-            } else {
-                finalReward = 50000;
-                rewardMsg = "🔥 MEGA JACKPOT!!! You won 50,000 CTX Coins!! 🔥";
-                confetti({ particleCount: 150, spread: 80 });
-            }
-
-            window.userData.balance += finalReward;
-            window.userData.lastSavedTime = Date.now();
-            window.saveDataBoth();
-            window.updateUI();
-
-            if(finalReward > cost) {
-                confetti({ particleCount: 30 });
-            }
-            alert(rewardMsg);
-        }
-
-        function copyRefLink() {
-            const copyText = document.getElementById("ref-link");
-            copyText.select();
-            navigator.clipboard.writeText(copyText.value);
-            alert("Copied!");
-        }
-        
-        function copyWalletAddress() {
-            const address = document.getElementById('wallet-address-display').innerText;
-            navigator.clipboard.writeText(address);
-            alert("Wallet address copied!");
-        }
     </script>
 </body>
 </html>
